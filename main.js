@@ -106,16 +106,16 @@
         return `
             <div style="background: rgba(0,0,0,0.4); border-radius: 1rem; padding: 0.8rem; margin-bottom: 1rem;">
                 <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem; color: #ffd966; display: flex; align-items: center; gap: 0.5rem;">
-                    🔄 SORTOWANIE KOŚCI
-                    <span id="currentSortModeLabel" style="font-size: 0.7rem; background: #2a4a6a; padding: 0.2rem 0.6rem; border-radius: 20px;">najnowsze</span>
+                    🔄 SORT BY:
+                    <span id="currentSortModeLabel" style="font-size: 0.7rem; background: #2a4a6a; padding: 0.2rem 0.6rem; border-radius: 20px;">Newest</span>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                     <button data-sort="eyes_asc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; transition: 0.1s;">⬆️ 1→20</button>
                     <button data-sort="eyes_desc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⬇️ 20→1</button>
-                    <button data-sort="newest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕐 Najnowsze</button>
-                    <button data-sort="oldest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕒 Najstarsze</button>
-                    <button data-sort="crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">✨ Craftowane</button>
-                    <button data-sort="non_crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⭐ Zwykłe</button>
+                    <button data-sort="newest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕐 Newest</button>
+                    <button data-sort="oldest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕒 Oldest</button>
+                    <button data-sort="crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">✨ Crafted</button>
+                    <button data-sort="non_crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⭐ Non-Crafted</button>
                 </div>
             </div>
         `;
@@ -161,7 +161,7 @@
                     currentSortMode = sortMode;
                     sortInventory();
                     updateSortModeLabel();
-                    addLog(`🔄 Zmieniono sortowanie na: ${btn.textContent.trim()}`);
+                    addLog(`🔄 Changed sorting type to: ${btn.textContent.trim()}`);
                 }
             });
         });
@@ -269,7 +269,7 @@
         if (rollCooldown) {
             rollBtn.disabled = true;
             if (remainingSeconds !== null && remainingSeconds > 0) {
-                rollBtn.textContent = `⏳ LOSUJ KOŚĆ (${remainingSeconds}s) ⏳`;
+                rollBtn.textContent = `⏳ ROLL (${remainingSeconds}s) ⏳`;
             } else {
                 rollBtn.textContent = `⏳ COOLDOWN... ⏳`;
             }
@@ -277,7 +277,7 @@
             rollBtn.style.cursor = 'not-allowed';
         } else {
             rollBtn.disabled = false;
-            rollBtn.textContent = `🎲 LOSUJ KOŚĆ 🎲`;
+            rollBtn.textContent = `🎲 ROLL 🎲`;
             rollBtn.style.opacity = '1';
             rollBtn.style.cursor = 'pointer';
         }
@@ -306,7 +306,7 @@
         diceInventoryDiv.innerHTML = '';
         if (inventory.length === 0) {
             const emptyMsg = document.createElement('div');
-            emptyMsg.innerText = '💀 Brak kości. Kliknij "LOSUJ KOŚĆ" aby zacząć! 💀';
+            emptyMsg.innerText = "💀 You don't have any dices! Click the ROLL button to interact. 💀";
             emptyMsg.style.padding = '20px';
             emptyMsg.style.color = '#aaa';
             emptyMsg.style.textAlign = 'center';
@@ -325,11 +325,6 @@
             eyesSpan.className = 'dice-eyes';
             eyesSpan.innerText = dice.eyes;
             card.appendChild(eyesSpan);
-            
-            const labelSpan = document.createElement('div');
-            labelSpan.className = 'dice-label';
-            labelSpan.innerText = `${dice.eyes} oczek`;
-            card.appendChild(labelSpan);
             
             if (dice.crafted) {
                 const craftedBadge = document.createElement('div');
@@ -374,13 +369,13 @@
                 if (Array.isArray(parsed)) {
                     inventory = parsed.filter(item => typeof item.eyes === 'number' && item.eyes >=1 && item.eyes <= MAX_DICE_VALUE)
                                      .map(item => ({ eyes: item.eyes, crafted: !!item.crafted }));
-                    if (inventory.length > 0) addLog(`⚙️ Wczytano zapis stanu gry (${inventory.length} kości).`);
+                    if (inventory.length > 0) addLog(`⚙️ You loaded game status (${inventory.length} dices).`);
                 }
-            } catch(e) { addLog("⚠️ Nie udało się wczytać zapisu", true); }
+            } catch(e) { addLog("⚠️ Unable to load status", true); }
         }
         if (!inventory.length) {
             inventory.push({ eyes: 1, crafted: false });
-            addLog("✨ Otrzymujesz początkową kość (1 oczko) na start! Powodzenia!");
+            addLog("✨ You get free 《1》 dice! Good luck!");
         }
         
         // Zastosuj sortowanie po załadowaniu
@@ -391,7 +386,7 @@
     }
     
     function resetGame() {
-        if (confirm("Czy na pewno chcesz zresetować całą grę? Wszystkie kości zostaną utracone!")) {
+        if (confirm("Are you sure you want to restart the game?") {
             if (cooldownTimer) clearInterval(cooldownTimer);
             rollCooldown = false;
             updateRollButtonCooldown();
@@ -401,9 +396,9 @@
             sortInventory(); // zastosuj sortowanie po resecie
             renderInventory();
             saveGame();
-            addLog("🔄 Gra zresetowana! Otrzymujesz 1 kość startową (1 oczko).");
+            addLog("🔄 You restarted the game!");
         } else {
-            addLog("Reset anulowany.");
+            addLog("Restart cancelled.");
         }
     }
     
@@ -412,7 +407,7 @@
     // ============================================================
     function rollDice() {
         if (rollCooldown) {
-            addLog("⏳ Musisz poczekać 3 sekundy przed kolejnym losowaniem! ⏳", true);
+            addLog("⏳ You have to wait 3 seconds! ⏳", true);
             return;
         }
         
@@ -427,18 +422,18 @@
         saveGame();
         
         let rarityDesc = "";
-        if (newEyes <= 3) rarityDesc = " (pospolita)";
-        else if (newEyes <= 7) rarityDesc = " (rzadsza)";
-        else if (newEyes <= 12) rarityDesc = " (epicka)";
-        else if (newEyes <= 16) rarityDesc = " (legendarna ★★★)";
-        else rarityDesc = " (☆ MITYCZNA NIEMOŻLIWA ☆)";
+        if (newEyes <= 3) rarityDesc = " (Common)";
+        else if (newEyes <= 7) rarityDesc = " (Uncommon)";
+        else if (newEyes <= 12) rarityDesc = " (Rare)";
+        else if (newEyes <= 16) rarityDesc = " (Epic ★★★)";
+        else rarityDesc = " (☆ LEGENDARY ☆)";
         
         const chancePercent = (PROB_TABLE[newEyes-1] / TOTAL_WEIGHT * 100).toFixed(5);
         const oneIn = Math.round(TOTAL_WEIGHT / PROB_TABLE[newEyes-1]);
-        addLog(`🎲 Wylosowano kość z ${newEyes} oczkami!${rarityDesc} (szansa: ${chancePercent}% | 1/${oneIn.toLocaleString()})`);
+        addLog(`🎲 Got a dice with ${newEyes} number ${rarityDesc} (chances: ${chancePercent}% | 1/${oneIn.toLocaleString()})`);
         
         if (newEyes >= 19) {
-            addLog(`🔥🔥 NIEMOŻLIWE! WYLOGOWAŁEŚ KOŚĆ ${newEyes} OCZEK! SZANSA 1/${oneIn.toLocaleString()}! 🔥🔥`, false);
+            addLog(`🔥🔥 NO WAY! YOU GOT A DICE WITH ${newEyes} NUMBER! CHANCE 1/${oneIn.toLocaleString()}! 🔥🔥`, false);
         }
         
         startRollCooldown();
@@ -451,12 +446,12 @@
         const selectedArr = Array.from(selectedIndices).sort((a,b)=>a-b);
         const count = selectedArr.length;
         if (count < 2 || count > 4) {
-            addLog(`❌ Craft wymaga od 2 do 4 zaznaczonych kości! (wybrano ${count})`, true);
+            addLog(`❌ You have to select 2-4 dices to craft! (${count} selected)`, true);
             return;
         }
         const selectedDice = selectedArr.map(idx => inventory[idx]);
         if (selectedDice.some(d => !d)) {
-            addLog("⚠️ Błąd zaznaczenia, odśwież zaznaczenie", true);
+            addLog("⚠️ Error", true);
             selectedIndices.clear();
             renderInventory();
             return;
@@ -483,7 +478,7 @@
             selectedIndices.clear();
             renderInventory();
             saveGame();
-            addLog(`✨✨ CRAFT UDANY! ✨✨ Połączono ${count} kości (suma oczek ${totalEyes}) → nowa kość o ${newEyes} oczkach! (połowa sumy). Ta kość posiada znacznik "Crafted".`);
+            addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${count} dices (number on all of them ${totalEyes}) → New dice with a ${newEyes} number! This dice is marked as "Crafted".`);
         } else {
             let newInventory = [...inventory];
             for (let i = selectedArr.length-1; i >= 0; i--) {
@@ -497,9 +492,9 @@
             selectedIndices.clear();
             renderInventory();
             saveGame();
-            addLog(`💔 Craft nieudany! 95% szans na stratę... Straciłeś ${count} kości (suma oczek ${totalEyes}).`, true);
+            addLog(`💔 Craft failed! 95% chance for losing... You lost ${count} dices (number on all of them ${totalEyes}).`, true);
             if (inventory.length === 0) {
-                addLog(`⚠️⚠️ Nie masz już żadnych kości! Kliknij "LOSUJ KOŚĆ" by kontynuować. ⚠️⚠️`, true);
+                addLog(`⚠️⚠️ You don't have any dices! Roll to continue ⚠️⚠️`, true);
             }
         }
     }
@@ -509,7 +504,7 @@
             callback();
         } catch(err) {
             console.error(err);
-            addLog(`Wystąpił błąd: ${err.message}`, true);
+            addLog(`ERROR: ${err.message}`, true);
             renderInventory();
         }
     }
@@ -564,11 +559,10 @@
     
     // Konsola
     if (window.console) {
-        console.log("=== REALISTYCZNE SZANSE NA KOŚCI ===");
+        console.log("CHANCES FOR EVERY DICE");
         PROB_TABLE.forEach((w, i) => {
-            console.log(`${i+1} oczek: ${(w / TOTAL_WEIGHT * 100).toFixed(4)}% (1 na ${Math.round(TOTAL_WEIGHT / w).toLocaleString()})`);
+            console.log(`${i+1}: ${(w / TOTAL_WEIGHT * 100).toFixed(4)}% (1 / ${Math.round(TOTAL_WEIGHT / w).toLocaleString()})`);
         });
-        console.log("=== COOLDOWN: 3 sekundy między losowaniami ===");
-        console.log("=== DOSTĘPNE SORTOWANIE: rosnąco, malejąco, najnowsze, najstarsze, craftowane, zwykłe ===");
+        console.log("COOLDOWN: 3 seconds");
     }
 })();
