@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Zaawansowana gra RNG - Krafter Kości</title>
+    <link rel="stylesheet" href="style.css">
+    </link>
+</head>
+<body>
+<div class="game-container">
+    <div class="header">
+        <h1>⚡ KOŚCI LOSOWANIA ⚡</h1>
+        <div class="sub">Im więcej oczek ➔ rzadsza szansa | Craftuj 2-4 kości (5% na połowę sumy)</div>
+    </div>
+
+    <div class="inventory-section">
+        <div class="section-title">🎲 TWOJE KOŚCI <span style="font-size:0.8rem;">(kliknij aby zaznaczyć)</span></div>
+        <div id="diceInventory" class="dice-grid">
+            <!-- dynamicznie generowane kości -->
+        </div>
+        <div style="margin-top: 10px; font-size: 0.75rem; text-align: right; opacity: 0.8;">⬅️ Zaznacz od 2 do 4 kości do craftu</div>
+    </div>
+
+    <div class="action-bar">
+        <button id="rollBtn" class="btn-primary">🎲 LOSUJ KOŚĆ 🎲</button>
+        <button id="craftBtn" class="btn-craft">🔮 CRAFTUJ (2-4 zaznaczone) 🔮</button>
+        <button id="resetBtn" class="btn-reset">🗑️ RESET GRY</button>
+    </div>
+
+    <div class="info-panel">
+        <div class="stat">
+            <span>📦 Ilość kości: <strong id="diceCount">0</strong></span>
+            <span>✨ Rzadkość: 1-20 oczek, szanse maleją logarytmicznie</span>
+            <span>⚒️ Craft: 5% na sukces (połowa sumy oczek), 95% strata</span>
+        </div>
+        <div class="log-area" id="logMessages">
+            🎲 Witaj w grze! Losuj kości, im więcej oczek tym większa rzadkość.<br>
+            💡 Craftuj 2-4 kości – jeśli szczęście dopisze (5%) dostaniesz nową kość o połowie sumy oczek, oznaczoną [Crafted].<br>
+            ⚠️ W przeciwnym razie stracisz zaznaczone kości.
+        </div>
+    </div>
+</div>
+<script src="main.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
