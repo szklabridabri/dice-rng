@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Zaawansowana gra RNG - Krafter Kości</title>
+    <title> 🎲 Dice RNG 🎲 </title>
     <link rel="stylesheet" href="style.css">
     </link>
 </head>
 <body>
 <div class="game-container">
     <div class="header">
-        <h1>⚡ KOŚCI LOSOWANIA ⚡</h1>
-        <div class="sub">Im więcej oczek ➔ rzadsza szansa | Craftuj 2-4 kości (5% na połowę sumy)</div>
-    </div>
+        <h1>⚡ DICE RNG ⚡</h1>
+        <!--<div class="sub"></div>-->
 
     <div class="inventory-section">
-        <div class="section-title">🎲 TWOJE KOŚCI <span style="font-size:0.8rem;">(kliknij aby zaznaczyć)</span></div>
+        <div class="section-title">🎲 Your Dices: <span style="font-size:0.8rem;">(click to select)</span></div>
         <div id="diceInventory" class="dice-grid">
             <!-- dynamicznie generowane kości -->
         </div>
@@ -23,21 +22,20 @@
     </div>
 
     <div class="action-bar">
-        <button id="rollBtn" class="btn-primary">🎲 LOSUJ KOŚĆ 🎲</button>
-        <button id="craftBtn" class="btn-craft">🔮 CRAFTUJ (2-4 zaznaczone) 🔮</button>
-        <button id="resetBtn" class="btn-reset">🗑️ RESET GRY</button>
+        <button id="rollBtn" class="btn-primary">🎲 ROLL 🎲</button>
+        <button id="craftBtn" class="btn-craft">🔮 CRAFT (2-4 Dices) 🔮</button>
+        <button id="resetBtn" class="btn-reset">🗑️ RESET 🗑</button>
     </div>
 
     <div class="info-panel">
         <div class="stat">
-            <span>📦 Ilość kości: <strong id="diceCount">0</strong></span>
-            <span>✨ Rzadkość: 1-20 oczek, szanse maleją logarytmicznie</span>
-            <span>⚒️ Craft: 5% na sukces (połowa sumy oczek), 95% strata</span>
+            <span>📦 Dices Count: <strong id="diceCount">0</strong></span>
+            <span>⚒️ Craft: 5% Chances for Success (Add the number of all dices that you're going to craft, divide it by 2. That's the number on the crafted dice 🙂). ! 95% chance for no crafted dice !</span>
         </div>
         <div class="log-area" id="logMessages">
-            🎲 Witaj w grze! Losuj kości, im więcej oczek tym większa rzadkość.<br>
-            💡 Craftuj 2-4 kości – jeśli szczęście dopisze (5%) dostaniesz nową kość o połowie sumy oczek, oznaczoną [Crafted].<br>
-            ⚠️ W przeciwnym razie stracisz zaznaczone kości.
+            🎲 Welcome! The bigger number on the dice, the lower chances for this dice!<br>
+            💡 Craft 2-4 dices at once – If you're lucky (5%) you get an OP dice marked as [Crafted].<br>
+            ⚠️ If you didn't win, you just lose all the previously selected dices (you do even if you won).
         </div>
     </div>
 </div>
