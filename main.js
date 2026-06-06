@@ -566,3 +566,373 @@
         console.log("COOLDOWN: 3 seconds");
     }
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ============================================================
+// 🎁 SYSTEM AUTOMATYCZNYCH PREZENTÓW Z ODLICZANIEM
+// ============================================================
+
+(function() {
+    // ============================================================
+    // KONFIGURACJA – TUTAJ USTAWIASZ DATĘ I PREZENTY!
+    // ============================================================
+    const CONFIG = {
+        // Data i godzina wydarzenia (ROCZEK, MIESIĄC-1, DZIEŃ, GODZINA, MINUTA)
+        // UWAGA: miesiące: 0=styczeń, 11=grudzień
+        targetDate: new Date(2025, 5, 6, 6, 31, 0), // 6 czerwca 2025, godzina 6:25
+        
+        // Lista prezentów – pojawią się po kolei co 3 sekundy
+        gifts: [
+            { eyes: 5, crafted: true, message: "Happy start :-)" },
+            { eyes: 5, crafted: true, message: "Another one!" },
+            { eyes: 8, crafted: false, message: "Now this is better!" },
+            { eyes: 10, crafted: true, message: "That's wild!!" },
+            { eyes: 1, crafted: false, message: "Aw hell nah 💩💩💩" },
+            { eyes: 8, crafted: true, message: "Nice :-* (the next one will be the last one....)" },
+            { eyes: 10, crafted: false, message: "THAT WAS SICK GUYS, ANOTHER 10 FOR YOU ALL <3" }
+        ],
+        
+        // Wiadomości do wyświetlenia przed prezentami
+        messages: [
+            "🎉 WELCOME! 🎉",
+            "⭐ LET'S GATHER EVERYONE!! ⭐",
+            "💎 Okay, IT'S TIMEEEE 💎",
+        ],
+        
+        // Co pokazać po zakończeniu (opcjonalne)
+        finalMessage: "🎊 Thanks for support! 🎊"
+    };
+    
+    // ============================================================
+    // RESZTA KODU – NIE MUSISZ TEGO RUSZAĆ
+    // ============================================================
+    let eventStarted = false;
+    let giftIndex = 0;
+    let messageIndex = 0;
+    let interval = null;
+    
+    // Funkcja do wyświetlania powiadomień
+    function showNotification(message, type = "info") {
+        const colors = {
+            info: "#3498db",
+            gift: "#f39c12",
+            success: "#2ecc71",
+            warning: "#e74c3c"
+        };
+        
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: ${colors[type] || colors.info};
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+            z-index: 10000;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border: 2px solid ${colors[type] || colors.info};
+            animation: slideDown 0.5s ease;
+            font-size: 18px;
+            text-align: center;
+            min-width: 300px;
+            backdrop-filter: blur(10px);
+        `;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        
+        // Dodaj animację CSS jeśli nie istnieje
+        if (!document.querySelector('#autoEventStyles')) {
+            const style = document.createElement('style');
+            style.id = 'autoEventStyles';
+            style.textContent = `
+                @keyframes slideDown {
+                    from {
+                        top: -100px;
+                        opacity: 0;
+                    }
+                    to {
+                        top: 20px;
+                        opacity: 1;
+                    }
+                }
+                @keyframes pulse {
+                    0% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                    100% { transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        setTimeout(() => {
+            notification.style.animation = "slideDown 0.5s reverse";
+            setTimeout(() => notification.remove(), 500);
+        }, 4000);
+    }
+    
+    // Funkcja do dodawania kości do gry
+    function addDiceToGame(eyes, crafted) {
+        if (typeof DiceAPI !== 'undefined' && DiceAPI.add) {
+            DiceAPI.add(eyes, crafted);
+        } else if (typeof window.inventory !== 'undefined') {
+            window.inventory.push({ eyes: eyes, crafted: crafted });
+            if (typeof window.sortInventory === 'function') window.sortInventory();
+            if (typeof window.renderInventory === 'function') window.renderInventory();
+            if (typeof window.saveGame === 'function') window.saveGame();
+        } else {
+            console.log(`⚠️ Nie można dodać kości – gra nie wykryta, ale prezent: ${eyes} oczek`);
+        }
+    }
+    
+    // Funkcja do wysyłania wiadomości (jakby admin pisał)
+    function sendAutoMessage(message) {
+        console.log(`%c💬 [AUTO-ADMIN]: ${message}`, "color: #ffaa88");
+        showNotification(message, "info");
+        
+        // Dodaj do logów gry jeśli istnieją
+        if (typeof addLog === 'function') {
+            addLog(`💬 ADMIN: ${message}`);
+        }
+    }
+    
+    // Funkcja do dawania prezentu
+    function giveAutoGift(gift) {
+        console.log(`%c🎁 [AUTO-ADMIN] ROZDANO: ${gift.message}`, "color: gold");
+        showNotification(`🎁 ${gift.message}`, "gift");
+        
+        // Dodaj do logów
+        if (typeof addLog === 'function') {
+            addLog(`🎁 ADMIN: ${gift.message} (kość ${gift.eyes} oczek!)`);
+        }
+        
+        // Dodaj kość do gry
+        addDiceToGame(gift.eyes, gift.crafted);
+    }
+    
+    // Rozpocznij wydarzenie
+    function startEvent() {
+        if (eventStarted) return;
+        eventStarted = true;
+        
+        console.log("%c🎉 WYDARZENIE ROZPOCZĘTE! 🎉", "color: gold; font-size: 16px");
+        showNotification("🎉 WYDARZENIE ROZPOCZĘTE! 🎉", "success");
+        
+        // Najpierw wyświetl wiadomości
+        function showNextMessage() {
+            if (messageIndex < CONFIG.messages.length) {
+                sendAutoMessage(CONFIG.messages[messageIndex]);
+                messageIndex++;
+                setTimeout(showNextMessage, 15000);
+            } else {
+                // Po wiadomościach – prezenty
+                showNextGift();
+            }
+        }
+        
+        function showNextGift() {
+            if (giftIndex < CONFIG.gifts.length) {
+                giveAutoGift(CONFIG.gifts[giftIndex]);
+                giftIndex++;
+                setTimeout(showNextGift, 25000);
+            } else {
+                // Koniec wydarzenia
+                setTimeout(() => {
+                    sendAutoMessage(CONFIG.finalMessage);
+                    showNotification(CONFIG.finalMessage, "success");
+                    console.log("%c🎊 WYDARZENIE ZAKOŃCZONE! 🎊", "color: gold; font-size: 16px");
+                }, 2000);
+            }
+        }
+        
+        showNextMessage();
+    }
+    
+    // ============================================================
+    // ODLICZANIE DO WYDARZENIA
+    // ============================================================
+    function updateCountdown() {
+        const now = new Date();
+        const diff = CONFIG.targetDate - now;
+        
+        if (diff <= 0 && !eventStarted) {
+            // Czas rozpocząć wydarzenie!
+            document.getElementById('countdownContainer').innerHTML = `
+                <div style="background: linear-gradient(135deg, #f39c12, #e74c3c); padding: 20px; border-radius: 20px; text-align: center;">
+                    <div style="font-size: 2rem; font-weight: bold;">🎉 WYDARZENIE ROZPOCZĘTE! 🎉</div>
+                    <div style="font-size: 1rem;">Prezenty są rozdawane!</div>
+                </div>
+            `;
+            startEvent();
+            if (interval) clearInterval(interval);
+            return;
+        }
+        
+        if (diff <= 0) return;
+        
+        // Oblicz dni, godziny, minuty, sekundy
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        // Aktualizuj wyświetlacz
+        const countdownElement = document.getElementById('countdownDisplay');
+        if (countdownElement) {
+            countdownElement.innerHTML = `
+                <div class="countdown-item">
+                    <span class="countdown-number">${days}</span>
+                    <span class="countdown-label">dni</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number">${hours}</span>
+                    <span class="countdown-label">godz</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number">${minutes}</span>
+                    <span class="countdown-label">min</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number">${seconds}</span>
+                    <span class="countdown-label">sek</span>
+                </div>
+            `;
+        }
+    }
+    
+    // ============================================================
+    // DODANIE ODLICZANIA DO STRONY
+    // ============================================================
+    function addCountdownToPage() {
+        // Sprawdź czy już istnieje
+        if (document.getElementById('countdownContainer')) return;
+        
+        // Znajdź odpowiednie miejsce (np. nad przyciskami)
+        const actionBar = document.querySelector('.action-bar');
+        if (!actionBar) return;
+        
+        const container = document.createElement('div');
+        container.id = 'countdownContainer';
+        container.style.cssText = `
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5));
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,215,0,0.3);
+        `;
+        
+        container.innerHTML = `
+            <div style="font-size: 1rem; margin-bottom: 10px; color: #ffd966;">
+                ⏰ SPECJALNE WYDARZENIE ROZPOCZNIE SIĘ ZA:
+            </div>
+            <div id="countdownDisplay" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                <div class="countdown-item">
+                    <span class="countdown-number">--</span>
+                    <span class="countdown-label">dni</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number">--</span>
+                    <span class="countdown-label">godz</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number">--</span>
+                    <span class="countdown-label">min</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number">--</span>
+                    <span class="countdown-label">sek</span>
+                </div>
+            </div>
+            <div style="font-size: 0.8rem; margin-top: 10px; color: #aaa;">
+                🎁 Przygotuj się na wyjątkowe prezenty! 🎁
+            </div>
+        `;
+        
+        // Dodaj style dla odliczania
+        const style = document.createElement('style');
+        style.textContent = `
+            .countdown-item {
+                background: rgba(0,0,0,0.5);
+                padding: 10px 15px;
+                border-radius: 15px;
+                min-width: 70px;
+                text-align: center;
+            }
+            .countdown-number {
+                font-size: 2rem;
+                font-weight: bold;
+                color: #f39c12;
+                display: block;
+            }
+            .countdown-label {
+                font-size: 0.7rem;
+                color: #aaa;
+                text-transform: uppercase;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Wstaw przed action-bar
+        actionBar.parentNode.insertBefore(container, actionBar);
+    }
+    
+    // ============================================================
+    // URUCHOMIENIE
+    // ============================================================
+    // Poczekaj aż strona się załaduje
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            addCountdownToPage();
+            updateCountdown();
+            interval = setInterval(updateCountdown, 1000);
+        });
+    } else {
+        addCountdownToPage();
+        updateCountdown();
+        interval = setInterval(updateCountdown, 1000);
+    }
+    
+    console.log("%c⏰ SYSTEM ODLICZANIA URUCHOMIONY!", "color: cyan; font-size: 14px");
+    console.log(`🎯 Wydarzenie zaplanowane na: ${CONFIG.targetDate.toLocaleString()}`);
+    console.log(`🎁 Liczba prezentów: ${CONFIG.gifts.length}`);
+    
+})();
