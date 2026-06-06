@@ -110,12 +110,12 @@
                     <span id="currentSortModeLabel" style="font-size: 0.7rem; background: #2a4a6a; padding: 0.2rem 0.6rem; border-radius: 20px;">Newest</span>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    <button data-sort="eyes_asc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; transition: 0.1s;">⬆️ 1→20</button>
-                    <button data-sort="eyes_desc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⬇️ 20→1</button>
-                    <button data-sort="newest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕐 Newest</button>
-                    <button data-sort="oldest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕒 Oldest</button>
-                    <button data-sort="crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">✨ Crafted</button>
-                    <button data-sort="non_crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⭐ Normal</button>
+                    <button data-sort="eyes_asc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; transition: 0.1s[...]
+                    <button data-sort="eyes_desc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⬇️ 20→1<[...]
+                    <button data-sort="newest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕐 Newest</butt[...]
+                    <button data-sort="oldest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕒 Oldest</butt[...]
+                    <button data-sort="crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">✨ Crafte[...]
+                    <button data-sort="non_crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⭐ No[...]
                 </div>
             </div>
         `;
@@ -744,10 +744,12 @@
                 craftsDone++;
                 statusDiv.innerHTML = `🔧 Craft #${craftsDone}: ${numberOfDice}x${eyesValue} → ${newEyes} ✅`;
                 showNotification(`✨ Craft #${craftsDone}: ${numberOfDice}x${eyesValue} → ${newEyes} (SUCCESS!)`, '#88ff88');
+                window.addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${numberOfDice} dices (number on all of them ${totalEyes}) → New dice with a ${newEyes} number! This dice is marked as "Crafted".`);
             } else {
                 statusDiv.innerHTML = `❌ Craft #${craftsDone + 1}: ${numberOfDice}x${eyesValue} → FAILED!`;
                 craftsDone++;
                 showNotification(`❌ Craft #${craftsDone}: ${numberOfDice}x${eyesValue} → FAILED!`, '#ff8888');
+                window.addLog(`💔 Craft failed! 95% chance for losing... You lost ${numberOfDice} dices (number on all of them ${totalEyes}).`, true);
             }
             
             window.inventory = newInventory;
@@ -807,10 +809,12 @@
                 craftsDone++;
                 statusDiv.innerHTML = `✨ Craft #${craftsDone}: sum ${totalEyes} → ${newEyes} ✅`;
                 showNotification(`✨ Craft any #${craftsDone}: sum ${totalEyes} → ${newEyes} (SUCCESS!)`, '#88ff88');
+                window.addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${numberOfDice} dices (number on all of them ${totalEyes}) → New dice with a ${newEyes} number! This dice is marked as "Crafted".`);
             } else {
                 statusDiv.innerHTML = `❌ Craft #${craftsDone + 1}: sum ${totalEyes} → FAILED!`;
                 craftsDone++;
                 showNotification(`❌ Craft any #${craftsDone}: sum ${totalEyes} → FAILED!`, '#ff8888');
+                window.addLog(`💔 Craft failed! 95% chance for losing... You lost ${numberOfDice} dices (number on all of them ${totalEyes}).`, true);
             }
             
             window.inventory = newInventory;
