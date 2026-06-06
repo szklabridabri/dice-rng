@@ -37,6 +37,117 @@
             ⚠️ If you didn't win, you just lose all the previously selected dices (you do even if you won).
         </div>
     </div>
+    <!-- ============================================================ -->
+<!-- 🛠️ PANEL MASOWEGO USUWANIA I AUTOCRAFTU -->
+<!-- ============================================================ -->
+
+<div id="massToolsPanel" style="
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 2px solid #ffd966;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">        <span style="font-size: 28px;">🛠️</span>
+        <span style="font-size: 1.4rem; font-weight: bold; color: #ffd966;">MASS TOOLS</span>
+    </div>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 25px;">
+        
+        <!-- ========== SEKCJA 1: USUWANIE KOSTEK ========== -->
+        <div style="flex: 1; min-width: 220px; background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px;">
+            <div style="color: #ff8888; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold;">🗑️ DELETE DICES</div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 0.8rem;">Choose number:</label>
+                <input type="range" id="deleteRange" min="1" max="20" value="5" style="width: 100%; margin: 8px 0;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #ffd966; font-size: 1.2rem; font-weight: bold;" id="deleteValueDisplay">5</span>
+                    <span style="color: #888;">(1-20)</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button id="deleteBelowBtn" style="background: #c0392b; border: none; padding: 8px 16px; border-radius: 10px; color: white; cursor: pointer; font-weight: bold;">🔻 Below (<span id="deleteBelowVal">5</span>)</button>
+                <button id="deleteAboveBtn" style="background: #c0392b; border: none; padding: 8px 16px; border-radius: 10px; color: white; cursor: pointer; font-weight: bold;">🔺 Above (<span id="deleteAboveVal">5</span>)</button>
+                <button id="deleteExactBtn" style="background: #c0392b; border: none; padding: 8px 16px; border-radius: 10px; color: white; cursor: pointer; font-weight: bold;">🎯 Exact (<span id="deleteExactVal">5</span>)</button>
+            </div>
+        </div>
+        
+        <!-- ========== SEKCJA 2: CRAFT TAKIE SAME ========== -->
+        <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px;">
+            <div style="color: #88ff88; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold;">🔧 CRAFT SAME VALUE</div>
+            
+            <div style="margin-bottom: 12px;">
+                <label style="color: #ccc; font-size: 0.8rem;">Dice value to craft:</label>
+                <input type="range" id="craftValueRange" min="1" max="20" value="3" style="width: 100%; margin: 8px 0;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color: #ffd966; font-size: 1.2rem; font-weight: bold;" id="craftValueDisplay">3</span>
+                    <span style="color: #888;">(1-20)</span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="color: #ccc; font-size: 0.8rem;">How many dices to combine:</label>
+                <div style="display: flex; gap: 15px; margin-top: 8px;">
+                    <label style="color: white; cursor: pointer;">
+                        <input type="radio" name="craftCount" value="2" style="margin-right: 5px;"> 2 dices
+                    </label>
+                    <label style="color: white; cursor: pointer;">
+                        <input type="radio" name="craftCount" value="3" checked style="margin-right: 5px;"> 3 dices
+                    </label>
+                    <label style="color: white; cursor: pointer;">
+                        <input type="radio" name="craftCount" value="4" style="margin-right: 5px;"> 4 dices
+                    </label>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="color: #ccc; font-size: 0.8rem;">Max crafts (0 = unlimited):</label>
+                <input type="number" id="craftMax" value="50" min="0" max="999" style="width: 100%; background: #2c3e50; border: 1px solid #ffd966; border-radius: 8px; color: white; padding: 6px; margin-top: 5px;">
+            </div>
+            
+            <button id="startCraftBtn" style="background: #27ae60; border: none; padding: 10px 20px; border-radius: 10px; color: white; cursor: pointer; font-weight: bold; width: 100%;">▶ START CRAFTING</button>
+            <div id="craftStatus" style="margin-top: 10px; font-size: 0.7rem; color: #aaa; text-align: center;"></div>
+        </div>
+        
+        <!-- ========== SEKCJA 3: CRAFT DOWOLNE ========== -->
+        <div style="flex: 1; min-width: 220px; background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px;">
+            <div style="color: #88aaff; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold;">🎲 CRAFT ANY DICES</div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="color: #ccc; font-size: 0.8rem;">How many dices to combine:</label>
+                <div style="display: flex; gap: 15px; margin-top: 8px;">
+                    <label style="color: white; cursor: pointer;">
+                        <input type="radio" name="craftAnyCount" value="2" style="margin-right: 5px;"> 2 dices
+                    </label>
+                    <label style="color: white; cursor: pointer;">
+                        <input type="radio" name="craftAnyCount" value="3" checked style="margin-right: 5px;"> 3 dices
+                    </label>
+                    <label style="color: white; cursor: pointer;">
+                        <input type="radio" name="craftAnyCount" value="4" style="margin-right: 5px;"> 4 dices
+                    </label>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="color: #ccc; font-size: 0.8rem;">Max crafts (0 = unlimited):</label>
+                <input type="number" id="craftAnyMax" value="50" min="0" max="999" style="width: 100%; background: #2c3e50; border: 1px solid #ffd966; border-radius: 8px; color: white; padding: 6px; margin-top: 5px;">
+            </div>
+            
+            <button id="startCraftAnyBtn" style="background: #27ae60; border: none; padding: 10px 20px; border-radius: 10px; color: white; cursor: pointer; font-weight: bold; width: 100%;">▶ START CRAFTING</button>
+            <div id="craftAnyStatus" style="margin-top: 10px; font-size: 0.7rem; color: #aaa; text-align: center;"></div>
+        </div>
+        
+        <!-- ========== SEKCJA 4: STATYSTYKI ========== -->
+        <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px;">
+            <div style="color: #ffaa66; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold;">📊 STATISTICS</div>
+            <button id="statsBtn" style="background: #f39c12; border: none; padding: 10px 20px; border-radius: 10px; color: #1a1a2e; cursor: pointer; font-weight: bold; width: 100%;">📈 SHOW STATS</button>
+            <div id="statsDisplay" style="margin-top: 15px; font-size: 0.7rem; color: #ccc; max-height: 200px; overflow-y: auto;"></div>
+        </div>
+    </div>
+</div>
 </div>
 <script src="main.js"></script>
 </body>
