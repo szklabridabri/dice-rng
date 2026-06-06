@@ -553,15 +553,15 @@
     }
     validateInventory();
 
-        // Make inventory and helper functions accessible to other scripts
+    // Make inventory and helper functions accessible to other scripts
     window.inventory = inventory;
     window.selectedIndices = selectedIndices;
     window.sortInventory = sortInventory;
     window.renderInventory = renderInventory;
     window.saveGame = saveGame;
     window.addLog = addLog;
-})();
-
+    
+    // Console logging
     window.addEventListener('beforeunload', () => {
         saveGame();
     });
@@ -575,24 +575,6 @@
         console.log("COOLDOWN: 3 seconds");
     }
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 (function() {
     // Czyścimy statusy
