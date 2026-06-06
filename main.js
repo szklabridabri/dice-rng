@@ -585,20 +585,19 @@
 
 
 
-
 // ============================================================
-// 🛠️ MASS DELETE & AUTOCRAFT SYSTEM
+// 🛠️ PANEL MASOWEGO USUWANIA I AUTOCRAFTU
 // ============================================================
 
-window.DiceManager = {
+(function() {
+    // Sprawdź czy panel już istnieje
+    if (document.getElementById('massToolsPanel')) return;
+    
     // ============================================================
-    // 1. DELETE ALL DICES BELOW SELECTED VALUE
+    // FUNKCJE USUWANIA
     // ============================================================
-    removeBelow: function(threshold) {
-        if (!confirm(`Are you sure you want to DELETE ALL dices with value BELOW ${threshold}?`)) {
-            console.log("❌ Cancelled");
-            return false;
-        }
+    window.removeBelow = function(threshold) {
+        if (!confirm(`🗑️ Delete ALL dices with value BELOW ${threshold}?`)) return;
         
         const beforeCount = inventory.length;
         const toRemove = inventory.filter(dice => dice.eyes < threshold);
@@ -606,250 +605,297 @@ window.DiceManager = {
         
         inventory = newInventory;
         selectedIndices.clear();
-        sortInventory();
-        renderInventory();
-        saveGame();
+        if (typeof sortInventory === 'function') sortInventory();
+        if (typeof renderInventory === 'function') renderInventory();
+        if (typeof saveGame === 'function') saveGame();
         
-        console.log(`%c✅ DELETED ${toRemove.length} dices (below ${threshold})`, "color: lime; font-size: 14px");
-        console.log(`📊 Remaining: ${inventory.length} dices`);
-        addLog(`🗑️ Deleted ${toRemove.length} dices with value below ${threshold}`);
-        return true;
-    },
+        console.log(`%c✅ Deleted ${toRemove.length} dices (below ${threshold})`, "color: lime");
+        if (typeof addLog === 'function') addLog(`🗑️ Deleted ${toRemove.length} dices below ${threshold}`);
+        return toRemove.length;
+    };
     
-    // ============================================================
-    // 2. DELETE ALL DICES ABOVE SELECTED VALUE
-    // ============================================================
-    removeAbove: function(threshold) {
-        if (!confirm(`Are you sure you want to DELETE ALL dices with value ABOVE ${threshold}?`)) {
-            console.log("❌ Cancelled");
-            return false;
-        }
+    window.removeAbove = function(threshold) {
+        if (!confirm(`🗑️ Delete ALL dices with value ABOVE ${threshold}?`)) return;
         
-        const beforeCount = inventory.length;
         const newInventory = inventory.filter(dice => dice.eyes <= threshold);
         const removed = inventory.length - newInventory.length;
         
         inventory = newInventory;
         selectedIndices.clear();
-        sortInventory();
-        renderInventory();
-        saveGame();
+        if (typeof sortInventory === 'function') sortInventory();
+        if (typeof renderInventory === 'function') renderInventory();
+        if (typeof saveGame === 'function') saveGame();
         
-        console.log(`%c✅ DELETED ${removed} dices (above ${threshold})`, "color: lime; font-size: 14px");
-        console.log(`📊 Remaining: ${inventory.length} dices`);
-        addLog(`🗑️ Deleted ${removed} dices with value above ${threshold}`);
-        return true;
-    },
+        console.log(`%c✅ Deleted ${removed} dices (above ${threshold})`, "color: lime");
+        if (typeof addLog === 'function') addLog(`🗑️ Deleted ${removed} dices above ${threshold}`);
+        return removed;
+    };
     
-    // ============================================================
-    // 3. DELETE ALL DICES WITH EXACT VALUE
-    // ============================================================
-    removeExact: function(eyesValue) {
-        if (!confirm(`Are you sure you want to DELETE ALL dices with value ${eyesValue}?`)) {
-            console.log("❌ Cancelled");
-            return false;
-        }
+    window.removeExact = function(value) {
+        if (!confirm(`🗑️ Delete ALL dices with value ${value}?`)) return;
         
-        const beforeCount = inventory.length;
-        const toRemove = inventory.filter(dice => dice.eyes === eyesValue);
-        const newInventory = inventory.filter(dice => dice.eyes !== eyesValue);
+        const toRemove = inventory.filter(dice => dice.eyes === value);
+        const newInventory = inventory.filter(dice => dice.eyes !== value);
         
         inventory = newInventory;
         selectedIndices.clear();
-        sortInventory();
-        renderInventory();
-        saveGame();
+        if (typeof sortInventory === 'function') sortInventory();
+        if (typeof renderInventory === 'function') renderInventory();
+        if (typeof saveGame === 'function') saveGame();
         
-        console.log(`%c✅ DELETED ${toRemove.length} dices with value ${eyesValue}`, "color: lime; font-size: 14px");
-        addLog(`🗑️ Deleted ${toRemove.length} dices with value ${eyesValue}`);
-        return true;
-    },
+        console.log(`%c✅ Deleted ${toRemove.length} dices with value ${value}`, "color: lime");
+        if (typeof addLog === 'function') addLog(`🗑️ Deleted ${toRemove.length} dices with value ${value}`);
+        return toRemove.length;
+    };
     
     // ============================================================
-    // 4. AUTOMATIC CRAFT (2, 3 or 4 dices of the same value)
+    // FUNKCJE CRAFTU (z cooldownem 1 sekunda)
     // ============================================================
-    autoCraft: function(eyesValue, numberOfDice, maxCrafts = 999) {
-        // numberOfDice: 2, 3 or 4
-        if (![2, 3, 4].includes(numberOfDice)) {
-            console.error("❌ Number of dices to craft must be 2, 3 or 4");
-            return false;
+    let isCrafting = false;
+    let craftQueue = [];
+    
+    function processCraftQueue() {
+        if (craftQueue.length === 0) {
+            isCrafting = false;
+            return;
         }
         
-        console.log(`%c🔧 STARTING AUTOCRAFT: ${numberOfDice} x dice ${eyesValue}`, "color: cyan; font-size: 14px");
-        addLog(`🔧 Autocraft: searching for ${numberOfDice} dices with value ${eyesValue}...`);
+        isCrafting = true;
+        const craftJob = craftQueue.shift();
         
-        let craftsDone = 0;
-        let totalEyesSum = 0;
+        // Wykonaj craft
+        const indices = [];
+        for (let i = 0; i < inventory.length && indices.length < craftJob.numberOfDice; i++) {
+            if (inventory[i].eyes === craftJob.eyesValue) {
+                indices.push(i);
+            }
+        }
         
-        function performCraft() {
-            // Find indices of dices to craft
-            const indices = [];
-            for (let i = 0; i < inventory.length && indices.length < numberOfDice; i++) {
-                if (inventory[i].eyes === eyesValue) {
-                    indices.push(i);
-                }
-            }
-            
-            if (indices.length < numberOfDice || craftsDone >= maxCrafts) {
-                console.log(`%c✅ AUTOCRAFT FINISHED! Crafts done: ${craftsDone}`, "color: lime; font-size: 14px");
-                addLog(`✅ Autocraft finished! ${craftsDone} crafts done, total eyes sum: ${totalEyesSum}`);
-                renderInventory();
-                saveGame();
-                return;
-            }
-            
-            // Save selected dices
+        if (indices.length >= craftJob.numberOfDice && craftJob.craftsDone < craftJob.maxCrafts) {
             const selectedDice = indices.map(idx => inventory[idx]);
             const totalEyes = selectedDice.reduce((sum, dice) => sum + dice.eyes, 0);
             const halfSum = Math.floor(totalEyes / 2);
-            let newEyes = Math.min(MAX_DICE_VALUE, Math.max(1, halfSum));
+            let newEyes = Math.min(20, Math.max(1, halfSum));
             
-            // Remove selected dices (from largest index)
+            // Usuń kości
             let newInventory = [...inventory];
             for (let i = indices.length - 1; i >= 0; i--) {
                 newInventory.splice(indices[i], 1);
             }
             
-            // Add new dice (5% success chance)
+            // 5% szans na sukces
             const success = Math.random() < 0.05;
             if (success) {
                 newInventory.push({ eyes: newEyes, crafted: true });
-                craftsDone++;
-                totalEyesSum += totalEyes;
-                console.log(`✨ Craft ${craftsDone}: ${numberOfDice}x${eyesValue} (${totalEyes}) → ${newEyes} eyes [SUCCESS!]`);
-                addLog(`✨ Autocraft #${craftsDone}: ${numberOfDice}x${eyesValue} → ${newEyes} eyes (SUCCESS!)`);
+                craftJob.craftsDone++;
+                craftJob.totalEyesSum += totalEyes;
+                console.log(`✨ Craft ${craftJob.craftsDone}: ${craftJob.numberOfDice}x${craftJob.eyesValue} → ${newEyes} [SUCCESS!]`);
+                if (typeof addLog === 'function') addLog(`✨ Craft: ${craftJob.numberOfDice}x${craftJob.eyesValue} → ${newEyes} (SUCCESS!)`);
             } else {
-                console.log(`❌ Craft ${craftsDone + 1}: ${numberOfDice}x${eyesValue} → FAILED! (lost ${numberOfDice} dices)`);
-                addLog(`❌ Autocraft #${craftsDone + 1}: ${numberOfDice}x${eyesValue} → FAILED! (lost ${numberOfDice} dices)`);
-                craftsDone++;
-                totalEyesSum += 0;
+                console.log(`❌ Craft ${craftJob.craftsDone + 1}: ${craftJob.numberOfDice}x${craftJob.eyesValue} → FAILED!`);
+                if (typeof addLog === 'function') addLog(`❌ Craft: ${craftJob.numberOfDice}x${craftJob.eyesValue} → FAILED!`);
+                craftJob.craftsDone++;
             }
             
             inventory = newInventory;
-            sortInventory();
-            renderInventory();
-            saveGame();
+            if (typeof sortInventory === 'function') sortInventory();
+            if (typeof renderInventory === 'function') renderInventory();
+            if (typeof saveGame === 'function') saveGame();
             
-            // 1 second cooldown before next craft
-            setTimeout(performCraft, 1000);
+            // Kontynuuj po 1 sekundzie
+            setTimeout(processCraftQueue, 1000);
+        } else {
+            console.log(`%c✅ Autocraft finished! Crafts done: ${craftJob.craftsDone}`, "color: lime");
+            if (typeof addLog === 'function') addLog(`✅ Autocraft finished! ${craftJob.craftsDone} crafts done`);
+            processCraftQueue();
         }
-        
-        performCraft();
-        return true;
-    },
+    }
     
-    // ============================================================
-    // 5. AUTOCRAFT ANY DICES (2-4 pieces, different values)
-    // ============================================================
-    autoCraftAny: function(numberOfDice, maxCrafts = 999) {
+    window.autoCraft = function(eyesValue, numberOfDice, maxCrafts = 999) {
         if (![2, 3, 4].includes(numberOfDice)) {
-            console.error("❌ Number of dices to craft must be 2, 3 or 4");
-            return false;
+            console.error("❌ Number of dices must be 2, 3 or 4");
+            return;
         }
         
-        console.log(`%c🔧 AUTOCRAFT ANY DICES: ${numberOfDice} pieces each`, "color: cyan; font-size: 14px");
-        addLog(`🔧 Auto craft any: looking for sets of ${numberOfDice} dices...`);
+        console.log(`%c🔧 Autocraft: ${numberOfDice}x dice ${eyesValue} (max ${maxCrafts} crafts)`, "color: cyan");
+        if (typeof addLog === 'function') addLog(`🔧 Autocraft started: ${numberOfDice}x${eyesValue}`);
+        
+        craftQueue.push({
+            eyesValue: eyesValue,
+            numberOfDice: numberOfDice,
+            maxCrafts: maxCrafts,
+            craftsDone: 0,
+            totalEyesSum: 0
+        });
+        
+        if (!isCrafting) processCraftQueue();
+    };
+    
+    window.autoCraftAny = function(numberOfDice, maxCrafts = 999) {
+        if (![2, 3, 4].includes(numberOfDice)) {
+            console.error("❌ Number of dices must be 2, 3 or 4");
+            return;
+        }
+        
+        console.log(`%c🔧 Autocraft any: ${numberOfDice} dices (max ${maxCrafts} crafts)`, "color: cyan");
+        if (typeof addLog === 'function') addLog(`🔧 Autocraft any started: ${numberOfDice} dices`);
         
         let craftsDone = 0;
-        let totalEyesSum = 0;
         
-        function performCraft() {
+        function doCraft() {
             if (inventory.length < numberOfDice || craftsDone >= maxCrafts) {
-                console.log(`%c✅ AUTOCRAFT FINISHED! Crafts done: ${craftsDone}`, "color: lime; font-size: 14px");
-                addLog(`✅ Auto craft any finished! ${craftsDone} crafts done`);
-                renderInventory();
-                saveGame();
+                console.log(`%c✅ Autocraft any finished! Crafts done: ${craftsDone}`, "color: lime");
+                if (typeof addLog === 'function') addLog(`✅ Autocraft any finished! ${craftsDone} crafts`);
                 return;
             }
             
-            // Take first 'numberOfDice' dices
             const indices = [...Array(numberOfDice).keys()];
             const selectedDice = indices.map(idx => inventory[idx]);
             const totalEyes = selectedDice.reduce((sum, dice) => sum + dice.eyes, 0);
             const halfSum = Math.floor(totalEyes / 2);
-            let newEyes = Math.min(MAX_DICE_VALUE, Math.max(1, halfSum));
+            let newEyes = Math.min(20, Math.max(1, halfSum));
             
-            // Remove first 'numberOfDice' dices
             let newInventory = [...inventory];
             for (let i = numberOfDice - 1; i >= 0; i--) {
                 newInventory.splice(i, 1);
             }
             
-            // 5% success chance
             const success = Math.random() < 0.05;
             if (success) {
                 newInventory.push({ eyes: newEyes, crafted: true });
                 craftsDone++;
-                totalEyesSum += totalEyes;
-                console.log(`✨ Craft ${craftsDone}: ${totalEyes} total eyes → ${newEyes} eyes [SUCCESS!]`);
-                addLog(`✨ Auto craft #${craftsDone}: sum ${totalEyes} → ${newEyes} eyes (SUCCESS!)`);
+                console.log(`✨ Craft ${craftsDone}: sum ${totalEyes} → ${newEyes} [SUCCESS!]`);
+                if (typeof addLog === 'function') addLog(`✨ Craft any: sum ${totalEyes} → ${newEyes} (SUCCESS!)`);
             } else {
-                console.log(`❌ Craft ${craftsDone + 1}: ${totalEyes} total eyes → FAILED!`);
-                addLog(`❌ Auto craft #${craftsDone + 1}: sum ${totalEyes} → FAILED!`);
+                console.log(`❌ Craft ${craftsDone + 1}: sum ${totalEyes} → FAILED!`);
+                if (typeof addLog === 'function') addLog(`❌ Craft any: sum ${totalEyes} → FAILED!`);
                 craftsDone++;
             }
             
             inventory = newInventory;
-            sortInventory();
-            renderInventory();
-            saveGame();
+            if (typeof sortInventory === 'function') sortInventory();
+            if (typeof renderInventory === 'function') renderInventory();
+            if (typeof saveGame === 'function') saveGame();
             
-            setTimeout(performCraft, 1000);
+            setTimeout(doCraft, 1000);
         }
         
-        performCraft();
-        return true;
-    },
+        doCraft();
+    };
     
     // ============================================================
-    // 6. SHOW DICE STATISTICS
+    // STATYSTYKI
     // ============================================================
-    stats: function() {
+    window.diceStats = function() {
         const stats = {};
-        for (let i = 1; i <= MAX_DICE_VALUE; i++) {
+        for (let i = 1; i <= 20; i++) {
             stats[i] = inventory.filter(d => d.eyes === i).length;
         }
         
         console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: gold");
         console.log("%c📊 DICE STATISTICS", "color: gold; font-size: 16px");
-        console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: gold");
-        
-        for (let i = 1; i <= MAX_DICE_VALUE; i++) {
+        for (let i = 1; i <= 20; i++) {
             if (stats[i] > 0) {
                 const crafted = inventory.filter(d => d.eyes === i && d.crafted).length;
-                console.log(`🎲 ${i} eyes: ${stats[i]} pieces (${crafted} crafted)`);
+                console.log(`🎲 ${i} eyes: ${stats[i]} (${crafted} crafted)`);
             }
         }
-        console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: gold");
         console.log(`📦 Total: ${inventory.length} dices`);
-        
         return stats;
+    };
+    
+    // ============================================================
+    // TWORZENIE PANELU W HTML
+    // ============================================================
+    function createMassToolsPanel() {
+        const panel = document.createElement('div');
+        panel.id = 'massToolsPanel';
+        panel.innerHTML = `
+            <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 20px; padding: 20px; margin: 20px 0; border: 1px solid #ffd966;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <span style="font-size: 24px;">🛠️</span>
+                    <span style="font-size: 1.2rem; font-weight: bold; color: #ffd966;">MASS TOOLS</span>
+                </div>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                    <!-- DELETE SECTION -->
+                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px;">
+                        <div style="color: #ff8888; margin-bottom: 12px; font-weight: bold;">🗑️ DELETE</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <input type="number" id="deleteValue" value="5" min="1" max="20" style="width: 70px; background: #2c3e50; border: 1px solid #ffd966; border-radius: 8px; color: white; padding: 6px; text-align: center;">
+                            <button id="deleteBelowBtn" style="background: #c0392b; border: none; padding: 6px 12px; border-radius: 10px; color: white; cursor: pointer;">Below</button>
+                            <button id="deleteAboveBtn" style="background: #c0392b; border: none; padding: 6px 12px; border-radius: 10px; color: white; cursor: pointer;">Above</button>
+                            <button id="deleteExactBtn" style="background: #c0392b; border: none; padding: 6px 12px; border-radius: 10px; color: white; cursor: pointer;">Exact</button>
+                        </div>
+                    </div>
+                    
+                    <!-- CRAFT SAME VALUE SECTION -->
+                    <div style="flex: 1; min-width: 250px; background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px;">
+                        <div style="color: #88ff88; margin-bottom: 12px; font-weight: bold;">🔧 CRAFT SAME VALUE</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <input type="number" id="craftEyes" value="3" min="1" max="20" style="width: 60px; background: #2c3e50; border: 1px solid #ffd966; border-radius: 8px; color: white; padding: 6px; text-align: center;">
+                            <select id="craftCount" style="background: #2c3e50; border: 1px solid #ffd966; border-radius: 8px; color: white; padding: 6px;">
+                                <option value="2">2 dices</option>
+                                <option value="3" selected>3 dices</option>
+                                <option value="4">4 dices</option>
+                            </select>
+                            <button id="startCraftBtn" style="background: #27ae60; border: none; padding: 6px 12px; border-radius: 10px; color: white; cursor: pointer;">Start</button>
+                        </div>
+                    </div>
+                    
+                    <!-- CRAFT ANY SECTION -->
+                    <div style="flex: 1; min-width: 200px; background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px;">
+                        <div style="color: #88aaff; margin-bottom: 12px; font-weight: bold;">🎲 CRAFT ANY</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <select id="craftAnyCount" style="background: #2c3e50; border: 1px solid #ffd966; border-radius: 8px; color: white; padding: 6px;">
+                                <option value="2">2 dices</option>
+                                <option value="3" selected>3 dices</option>
+                                <option value="4">4 dices</option>
+                            </select>
+                            <button id="startCraftAnyBtn" style="background: #27ae60; border: none; padding: 6px 12px; border-radius: 10px; color: white; cursor: pointer;">Start</button>
+                        </div>
+                    </div>
+                    
+                    <!-- STATS BUTTON -->
+                    <div style="display: flex; align-items: center;">
+                        <button id="statsBtn" style="background: #f39c12; border: none; padding: 6px 15px; border-radius: 10px; color: #1a1a2e; cursor: pointer; font-weight: bold;">📊 STATS</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Znajdź miejsce do wstawienia (nad przyciskami akcji)
+        const actionBar = document.querySelector('.action-bar');
+        if (actionBar) {
+            actionBar.parentNode.insertBefore(panel, actionBar);
+        } else {
+            document.querySelector('.game-container')?.appendChild(panel);
+        }
+        
+        // Podłącz eventy
+        const deleteValue = document.getElementById('deleteValue');
+        document.getElementById('deleteBelowBtn').onclick = () => removeBelow(parseInt(deleteValue.value));
+        document.getElementById('deleteAboveBtn').onclick = () => removeAbove(parseInt(deleteValue.value));
+        document.getElementById('deleteExactBtn').onclick = () => removeExact(parseInt(deleteValue.value));
+        
+        const craftEyes = document.getElementById('craftEyes');
+        const craftCount = document.getElementById('craftCount');
+        document.getElementById('startCraftBtn').onclick = () => autoCraft(parseInt(craftEyes.value), parseInt(craftCount.value), 999);
+        
+        const craftAnyCount = document.getElementById('craftAnyCount');
+        document.getElementById('startCraftAnyBtn').onclick = () => autoCraftAny(parseInt(craftAnyCount.value), 999);
+        
+        document.getElementById('statsBtn').onclick = () => diceStats();
     }
-};
-
-// ============================================================
-// SHORTCUT COMMANDS FOR CONSOLE
-// ============================================================
-window.removeBelow = (x) => DiceManager.removeBelow(x);
-window.removeAbove = (x) => DiceManager.removeAbove(x);
-window.removeExact = (x) => DiceManager.removeExact(x);
-window.autoCraft = (val, num, max) => DiceManager.autoCraft(val, num, max);
-window.autoCraftAny = (num, max) => DiceManager.autoCraftAny(num, max);
-window.diceStats = () => DiceManager.stats();
-
-/*
-console.log("%c🛠️ MASS DELETE & AUTOCRAFT SYSTEM READY!", "color: #ff66ff; font-size: 16px");
-console.log("");
-console.log("📌 AVAILABLE COMMANDS:");
-console.log("   removeBelow(X)     - delete all dices below X");
-console.log("   removeAbove(X)     - delete all dices above X");
-console.log("   removeExact(X)     - delete all dices with value X");
-console.log("   autoCraft(val, num, max)  - craft 'num' dices with value 'val'");
-console.log("   autoCraftAny(num, max)    - craft any 'num' dices");
-console.log("   diceStats()         - show dice statistics");
-console.log("");
-console.log("💡 EXAMPLES:");
-console.log("   removeBelow(5)           - deletes dices 1-4");
-console.log("   autoCraft(3, 4, 10)      - craft 4x3 dices (max 10 times)");
-console.log("   autoCraftAny(2, 20)      - craft any 2 dices (max 20 times)");
-*/
+    
+    // Uruchom po załadowaniu strony
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', createMassToolsPanel);
+    } else {
+        setTimeout(createMassToolsPanel, 500);
+    }
+    
+    console.log("%c🛠️ MASS TOOLS PANEL READY!", "color: #ff66ff; font-size: 14px");
+    console.log("📌 Commands: removeBelow(X), removeAbove(X), removeExact(X), autoCraft(val, num), autoCraftAny(num), diceStats()");
+    
+})();
