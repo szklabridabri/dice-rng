@@ -2,29 +2,6 @@
     // ============================================================
     // REALISTYCZNE SZANSE – BARDZO RZADKIE WYSOKIE OCZKA
     // ============================================================
-    // Szanse oparte na skali 1/1.000.000 (jedna milionowa część)
-    // Dla oczka 1: 50% (500,000 / 1,000,000)
-    // Dla oczka 2: 25% (250,000 / 1,000,000)
-    // Dla oczka 3: 12% (120,000)
-    // Dla oczka 4: 6% (60,000)
-    // Dla oczka 5: 3% (30,000)
-    // Dla oczka 6: 1.5% (15,000)
-    // Dla oczka 7: 0.8% (8,000)
-    // Dla oczka 8: 0.4% (4,000)
-    // Dla oczka 9: 0.25% (2,500)
-    // Dla oczka 10: 0.15% (1,500)
-    // Dla oczka 11: 0.1% (1,000)
-    // Dla oczka 12: 0.07% (700)
-    // Dla oczka 13: 0.05% (500)
-    // Dla oczka 14: 0.03% (300)
-    // Dla oczka 15: 0.02% (200)
-    // Dla oczka 16: 0.012% (120)
-    // Dla oczka 17: 0.008% (80)
-    // Dla oczka 18: 0.005% (50)
-    // Dla oczka 19: 0.0025% (25)
-    // Dla oczka 20: 0.0007% (7) – praktycznie niemożliwe (1 na ~142,857 losowań)
-    // SUMA = 1,000,000 (jedna milionowa)
-    
     const PROB_TABLE = [
         500000,  // 1 oczko  – 50%
         250000,  // 2 oczka – 25%
@@ -45,35 +22,153 @@
         80,      // 17 oczek – 0.008%
         50,      // 18 oczek – 0.005%
         25,      // 19 oczek – 0.0025%
-        7        // 20 oczek – 0.0007% (1 na ~142,857)
+        7        // 20 oczek – 0.0007%
     ];
     
     const MAX_DICE_VALUE = 20;
-    const TOTAL_WEIGHT = PROB_TABLE.reduce((a,b) => a + b, 0); // = 1,000,000
+    const TOTAL_WEIGHT = PROB_TABLE.reduce((a,b) => a + b, 0);
     
     // ============================================================
-    // COOLDOWN – 3 sekundy na losowanie
+    // COOLDOWN
     // ============================================================
     let rollCooldown = false;
     let cooldownTimer = null;
     
     // ============================================================
-    // Funkcja losująca wartość kości zgodnie z powyższym rozkładem
+    // SORTOWANIE – tryby
     // ============================================================
-    function getRandomDiceValue() {
-        const rand = Math.random() * TOTAL_WEIGHT;
-        let cumulative = 0;
-        for (let i = 0; i < PROB_TABLE.length; i++) {
-            cumulative += PROB_TABLE[i];
-            if (rand < cumulative) {
-                return i + 1;
-            }
+    const SORT_MODES = {
+        EYES_ASC: 'eyes_asc',      // od najmniejszej do największej
+        EYES_DESC: 'eyes_desc',    // od największej do najmniejszej
+        NEWEST: 'newest',          // najnowsze (ostatnie dodane)
+        OLDEST: 'oldest',          // najstarsze (pierwsze dodane)
+        CRAFTED_FIRST: 'crafted_first',    // najpierw craftowane
+        NON_CRAFTED_FIRST: 'non_crafted_first' // najpierw niecraftowane
+    };
+    
+    let currentSortMode = SORT_MODES.NEWEST; // domyślnie najnowsze
+    let sortButtonsContainer = null;
+    
+    // ============================================================
+    // FUNKCJA SORTUJĄCA INWENTARZ
+    // ============================================================
+    function sortInventory() {
+        const originalOrder = [...inventory];
+        
+        switch(currentSortMode) {
+            case SORT_MODES.EYES_ASC:
+                inventory.sort((a, b) => a.eyes - b.eyes);
+                break;
+            case SORT_MODES.EYES_DESC:
+                inventory.sort((a, b) => b.eyes - a.eyes);
+                break;
+            case SORT_MODES.NEWEST:
+                // przywróć oryginalną kolejność (ostatnie dodane na końcu)
+                // ale nowsze = większy indeks, więc nie zmieniamy
+                inventory.sort((a, b) => {
+                    const idxA = originalOrder.findIndex(item => item === a);
+                    const idxB = originalOrder.findIndex(item => item === b);
+                    return idxB - idxA;
+                });
+                break;
+            case SORT_MODES.OLDEST:
+                inventory.sort((a, b) => {
+                    const idxA = originalOrder.findIndex(item => item === a);
+                    const idxB = originalOrder.findIndex(item => item === b);
+                    return idxA - idxB;
+                });
+                break;
+            case SORT_MODES.CRAFTED_FIRST:
+                inventory.sort((a, b) => {
+                    if (a.crafted === b.crafted) return 0;
+                    return a.crafted ? -1 : 1;
+                });
+                break;
+            case SORT_MODES.NON_CRAFTED_FIRST:
+                inventory.sort((a, b) => {
+                    if (a.crafted === b.crafted) return 0;
+                    return a.crafted ? 1 : -1;
+                });
+                break;
+            default:
+                break;
         }
-        return 1;
+        
+        // Zaznaczenia są resetowane przy sortowaniu (dla bezpieczeństwa)
+        selectedIndices.clear();
+        renderInventory();
     }
     
     // ============================================================
-    // GENEROWANIE TABELI SZANS (HTML)
+    // GENEROWANIE PANELU SORTOWANIA
+    // ============================================================
+    function generateSortPanelHTML() {
+        return `
+            <div style="background: rgba(0,0,0,0.4); border-radius: 1rem; padding: 0.8rem; margin-bottom: 1rem;">
+                <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem; color: #ffd966; display: flex; align-items: center; gap: 0.5rem;">
+                    🔄 SORTOWANIE KOŚCI
+                    <span id="currentSortModeLabel" style="font-size: 0.7rem; background: #2a4a6a; padding: 0.2rem 0.6rem; border-radius: 20px;">najnowsze</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <button data-sort="eyes_asc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; transition: 0.1s;">⬆️ 1→20</button>
+                    <button data-sort="eyes_desc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⬇️ 20→1</button>
+                    <button data-sort="newest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕐 Najnowsze</button>
+                    <button data-sort="oldest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕒 Najstarsze</button>
+                    <button data-sort="crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">✨ Craftowane</button>
+                    <button data-sort="non_crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⭐ Zwykłe</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    function updateSortModeLabel() {
+        const label = document.getElementById('currentSortModeLabel');
+        if (!label) return;
+        
+        const modeNames = {
+            eyes_asc: '⬆️ rosnąco',
+            eyes_desc: '⬇️ malejąco',
+            newest: '🕐 najnowsze',
+            oldest: '🕒 najstarsze',
+            crafted_first: '✨ craftowane',
+            non_crafted_first: '⭐ zwykłe'
+        };
+        label.textContent = modeNames[currentSortMode] || 'najnowsze';
+        
+        // Podświetlenie aktywnego przycisku
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            const btnSort = btn.getAttribute('data-sort');
+            if (btnSort === currentSortMode) {
+                btn.style.background = '#f39c12';
+                btn.style.color = '#1a1a2e';
+                btn.style.fontWeight = 'bold';
+            } else {
+                btn.style.background = '#2c3e50';
+                btn.style.color = '#ecf0f1';
+                btn.style.fontWeight = 'normal';
+            }
+        });
+    }
+    
+    function setupSortButtons() {
+        const sortPanel = document.getElementById('sortPanelContainer');
+        if (!sortPanel) return;
+        
+        sortPanel.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const sortMode = btn.getAttribute('data-sort');
+                if (sortMode && SORT_MODES[Object.keys(SORT_MODES).find(key => SORT_MODES[key] === sortMode)]) {
+                    currentSortMode = sortMode;
+                    sortInventory();
+                    updateSortModeLabel();
+                    addLog(`🔄 Zmieniono sortowanie na: ${btn.textContent.trim()}`);
+                }
+            });
+        });
+    }
+    
+    // ============================================================
+    // GENEROWANIE TABELI SZANS
     // ============================================================
     function generateChanceTableHTML() {
         let html = '<div style="background: rgba(0,0,0,0.5); border-radius: 1rem; padding: 0.8rem; margin-top: 0.8rem;">';
@@ -104,6 +199,21 @@
     }
     
     // ============================================================
+    // FUNKCJA LOSUJĄCA
+    // ============================================================
+    function getRandomDiceValue() {
+        const rand = Math.random() * TOTAL_WEIGHT;
+        let cumulative = 0;
+        for (let i = 0; i < PROB_TABLE.length; i++) {
+            cumulative += PROB_TABLE[i];
+            if (rand < cumulative) {
+                return i + 1;
+            }
+        }
+        return 1;
+    }
+    
+    // ============================================================
     // STRUKTURA DANYCH
     // ============================================================
     let inventory = [];
@@ -118,9 +228,19 @@
     const resetBtn = document.getElementById('resetBtn');
     
     // ============================================================
-    // DODANIE TABELI SZANS DO PANELU INFORMACYJNEGO
+    // DODANIE PANELI DO INTERFEJSU
     // ============================================================
-    function addChanceTableToPanel() {
+    function addPanelsToGame() {
+        const inventorySection = document.querySelector('.inventory-section');
+        if (inventorySection && !document.getElementById('sortPanelContainer')) {
+            const sortContainer = document.createElement('div');
+            sortContainer.id = 'sortPanelContainer';
+            sortContainer.innerHTML = generateSortPanelHTML();
+            inventorySection.insertBefore(sortContainer, inventorySection.firstChild);
+            setupSortButtons();
+            updateSortModeLabel();
+        }
+        
         const infoPanel = document.querySelector('.info-panel');
         if (infoPanel && !document.getElementById('chanceTableContainer')) {
             const chanceContainer = document.createElement('div');
@@ -145,7 +265,6 @@
         }
     }
     
-    // Funkcja aktualizująca przycisk losowania (cooldown UI)
     function updateRollButtonCooldown(remainingSeconds = null) {
         if (rollCooldown) {
             rollBtn.disabled = true;
@@ -164,7 +283,6 @@
         }
     }
     
-    // Rozpoczęcie cooldownu na 3 sekundy
     function startRollCooldown() {
         if (cooldownTimer) clearInterval(cooldownTimer);
         rollCooldown = true;
@@ -238,11 +356,18 @@
         try {
             const toStore = inventory.map(d => ({ eyes: d.eyes, crafted: d.crafted }));
             localStorage.setItem('rngDiceGame', JSON.stringify(toStore));
+            localStorage.setItem('rngDiceGame_sortMode', currentSortMode);
         } catch(e) { console.warn(e); }
     }
     
     function loadGame() {
         const saved = localStorage.getItem('rngDiceGame');
+        const savedSortMode = localStorage.getItem('rngDiceGame_sortMode');
+        
+        if (savedSortMode && Object.values(SORT_MODES).includes(savedSortMode)) {
+            currentSortMode = savedSortMode;
+        }
+        
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
@@ -257,6 +382,9 @@
             inventory.push({ eyes: 1, crafted: false });
             addLog("✨ Otrzymujesz początkową kość (1 oczko) na start! Powodzenia!");
         }
+        
+        // Zastosuj sortowanie po załadowaniu
+        sortInventory();
         selectedIndices.clear();
         renderInventory();
         saveGame();
@@ -270,6 +398,7 @@
             inventory = [];
             inventory.push({ eyes: 1, crafted: false });
             selectedIndices.clear();
+            sortInventory(); // zastosuj sortowanie po resecie
             renderInventory();
             saveGame();
             addLog("🔄 Gra zresetowana! Otrzymujesz 1 kość startową (1 oczko).");
@@ -289,6 +418,10 @@
         
         const newEyes = getRandomDiceValue();
         inventory.push({ eyes: newEyes, crafted: false });
+        
+        // Po dodaniu nowej kości, zastosuj sortowanie
+        sortInventory();
+        
         selectedIndices.clear();
         renderInventory();
         saveGame();
@@ -308,7 +441,6 @@
             addLog(`🔥🔥 NIEMOŻLIWE! WYLOGOWAŁEŚ KOŚĆ ${newEyes} OCZEK! SZANSA 1/${oneIn.toLocaleString()}! 🔥🔥`, false);
         }
         
-        // Uruchom cooldown
         startRollCooldown();
     }
     
@@ -344,6 +476,10 @@
             }
             newInventory.push({ eyes: newEyes, crafted: true });
             inventory = newInventory;
+            
+            // Zastosuj sortowanie po craftingu
+            sortInventory();
+            
             selectedIndices.clear();
             renderInventory();
             saveGame();
@@ -354,6 +490,10 @@
                 newInventory.splice(selectedArr[i], 1);
             }
             inventory = newInventory;
+            
+            // Zastosuj sortowanie po nieudanym craftingu
+            sortInventory();
+            
             selectedIndices.clear();
             renderInventory();
             saveGame();
@@ -393,7 +533,7 @@
     // INICJALIZACJA
     // ============================================================
     loadGame();
-    addChanceTableToPanel();
+    addPanelsToGame();
     
     // Okresowy zapis
     setInterval(() => {
@@ -411,6 +551,7 @@
             if (typeof d.crafted !== 'boolean') d.crafted = false, changed=true;
         }
         if (changed) {
+            sortInventory();
             renderInventory();
             saveGame();
         }
@@ -428,5 +569,6 @@
             console.log(`${i+1} oczek: ${(w / TOTAL_WEIGHT * 100).toFixed(4)}% (1 na ${Math.round(TOTAL_WEIGHT / w).toLocaleString()})`);
         });
         console.log("=== COOLDOWN: 3 sekundy między losowaniami ===");
+        console.log("=== DOSTĘPNE SORTOWANIE: rosnąco, malejąco, najnowsze, najstarsze, craftowane, zwykłe ===");
     }
 })();
