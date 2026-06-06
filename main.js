@@ -172,7 +172,7 @@
     // ============================================================
     function generateChanceTableHTML() {
         let html = '<div style="background: rgba(0,0,0,0.5); border-radius: 1rem; padding: 0.8rem; margin-top: 0.8rem;">';
-        html += '<div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem; color: #ffd966;">📊 SZANSE NA WYLOSOWANIE:</div>';
+        html += '<div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem; color: #ffd966;">📊 CHANCES:</div>';
         html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.3rem; font-size: 0.7rem;">';
         
         for (let i = 0; i < PROB_TABLE.length; i++) {
@@ -256,8 +256,8 @@
     function addLog(msg, isError = false) {
         const p = document.createElement('div');
         p.innerHTML = `📢 ${new Date().toLocaleTimeString()} - ${msg}`;
-        if (isError) p.style.color = "#ffaa88";
-        else p.style.color = "#d4eaff";
+        if (isError) p.style.color = "red";
+        else p.style.color = "white";
         logMessagesDiv.appendChild(p);
         p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         while(logMessagesDiv.children.length > 55) {
