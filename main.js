@@ -28,64 +28,53 @@
     const MAX_DICE_VALUE = 20;
     const TOTAL_WEIGHT = PROB_TABLE.reduce((a,b) => a + b, 0);
     
-    // ============================================================
-    // COOLDOWN
-    // ============================================================
     let rollCooldown = false;
     let cooldownTimer = null;
     
-    // ============================================================
-    // SORTOWANIE – tryby
-    // ============================================================
     const SORT_MODES = {
-        EYES_ASC: 'eyes_asc',      // od najmniejszej do największej
-        EYES_DESC: 'eyes_desc',    // od największej do najmniejszej
-        NEWEST: 'newest',          // najnowsze (ostatnie dodane)
-        OLDEST: 'oldest',          // najstarsze (pierwsze dodane)
-        CRAFTED_FIRST: 'crafted_first',    // najpierw craftowane
-        NON_CRAFTED_FIRST: 'non_crafted_first' // najpierw niecraftowane
+        EYES_ASC: 'eyes_asc',
+        EYES_DESC: 'eyes_desc',
+        NEWEST: 'newest',
+        OLDEST: 'oldest',
+        CRAFTED_FIRST: 'crafted_first',
+        NON_CRAFTED_FIRST: 'non_crafted_first'
     };
     
-    let currentSortMode = SORT_MODES.NEWEST; // domyślnie najnowsze
+    let currentSortMode = SORT_MODES.NEWEST;
     let sortButtonsContainer = null;
     
-    // ============================================================
-    // FUNKCJA SORTUJĄCA INWENTARZ
-    // ============================================================
     function sortInventory() {
-        const originalOrder = [...inventory];
+        const originalOrder = [...window.inventory];
         
         switch(currentSortMode) {
             case SORT_MODES.EYES_ASC:
-                inventory.sort((a, b) => a.eyes - b.eyes);
+                window.inventory.sort((a, b) => a.eyes - b.eyes);
                 break;
             case SORT_MODES.EYES_DESC:
-                inventory.sort((a, b) => b.eyes - a.eyes);
+                window.inventory.sort((a, b) => b.eyes - a.eyes);
                 break;
             case SORT_MODES.NEWEST:
-                // przywróć oryginalną kolejność (ostatnie dodane na końcu)
-                // ale nowsze = większy indeks, więc nie zmieniamy
-                inventory.sort((a, b) => {
+                window.inventory.sort((a, b) => {
                     const idxA = originalOrder.findIndex(item => item === a);
                     const idxB = originalOrder.findIndex(item => item === b);
                     return idxB - idxA;
                 });
                 break;
             case SORT_MODES.OLDEST:
-                inventory.sort((a, b) => {
+                window.inventory.sort((a, b) => {
                     const idxA = originalOrder.findIndex(item => item === a);
                     const idxB = originalOrder.findIndex(item => item === b);
                     return idxA - idxB;
                 });
                 break;
             case SORT_MODES.CRAFTED_FIRST:
-                inventory.sort((a, b) => {
+                window.inventory.sort((a, b) => {
                     if (a.crafted === b.crafted) return 0;
                     return a.crafted ? -1 : 1;
                 });
                 break;
             case SORT_MODES.NON_CRAFTED_FIRST:
-                inventory.sort((a, b) => {
+                window.inventory.sort((a, b) => {
                     if (a.crafted === b.crafted) return 0;
                     return a.crafted ? 1 : -1;
                 });
@@ -94,14 +83,10 @@
                 break;
         }
         
-        // Zaznaczenia są resetowane przy sortowaniu (dla bezpieczeństwa)
-        selectedIndices.clear();
+        window.selectedIndices.clear();
         renderInventory();
     }
     
-    // ============================================================
-    // GENEROWANIE PANELU SORTOWANIA
-    // ============================================================
     function generateSortPanelHTML() {
         return `
             <div style="background: rgba(0,0,0,0.4); border-radius: 1rem; padding: 0.8rem; margin-bottom: 1rem;">
@@ -110,12 +95,12 @@
                     <span id="currentSortModeLabel" style="font-size: 0.7rem; background: #2a4a6a; padding: 0.2rem 0.6rem; border-radius: 20px;">Newest</span>
                 </div>
                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    <button data-sort="eyes_asc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer; transition: 0.1s[...]
-                    <button data-sort="eyes_desc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⬇️ 20→1<[...]
-                    <button data-sort="newest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕐 Newest</butt[...]
-                    <button data-sort="oldest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕒 Oldest</butt[...]
-                    <button data-sort="crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">✨ Crafte[...]
-                    <button data-sort="non_crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⭐ No[...]
+                    <button data-sort="eyes_asc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⬆️ 1→20</button>
+                    <button data-sort="eyes_desc" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⬇️ 20→1</button>
+                    <button data-sort="newest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕐 Newest</button>
+                    <button data-sort="oldest" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">🕒 Oldest</button>
+                    <button data-sort="crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">✨ Crafted</button>
+                    <button data-sort="non_crafted_first" class="sort-btn" style="background: #2c3e50; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; cursor: pointer;">⭐ Normal</button>
                 </div>
             </div>
         `;
@@ -135,7 +120,6 @@
         };
         label.textContent = modeNames[currentSortMode] || 'najnowsze';
         
-        // Podświetlenie aktywnego przycisku
         document.querySelectorAll('.sort-btn').forEach(btn => {
             const btnSort = btn.getAttribute('data-sort');
             if (btnSort === currentSortMode) {
@@ -167,9 +151,6 @@
         });
     }
     
-    // ============================================================
-    // GENEROWANIE TABELI SZANS
-    // ============================================================
     function generateChanceTableHTML() {
         let html = '<div style="background: rgba(0,0,0,0.5); border-radius: 1rem; padding: 0.8rem; margin-top: 0.8rem;">';
         html += '<div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.5rem; color: #ffd966;">📊 CHANCES:</div>';
@@ -198,9 +179,6 @@
         return html;
     }
     
-    // ============================================================
-    // FUNKCJA LOSUJĄCA
-    // ============================================================
     function getRandomDiceValue() {
         const rand = Math.random() * TOTAL_WEIGHT;
         let cumulative = 0;
@@ -213,13 +191,6 @@
         return 1;
     }
     
-    // ============================================================
-    // STRUKTURA DANYCH
-    // ============================================================
-    let inventory = [];
-    let selectedIndices = new Set();
-
-    // DOM elementy
     const diceInventoryDiv = document.getElementById('diceInventory');
     const diceCountSpan = document.getElementById('diceCount');
     const logMessagesDiv = document.getElementById('logMessages');
@@ -227,9 +198,6 @@
     const craftBtn = document.getElementById('craftBtn');
     const resetBtn = document.getElementById('resetBtn');
     
-    // ============================================================
-    // DODANIE PANELI DO INTERFEJSU
-    // ============================================================
     function addPanelsToGame() {
         const inventorySection = document.querySelector('.inventory-section');
         if (inventorySection && !document.getElementById('sortPanelContainer')) {
@@ -250,13 +218,10 @@
         }
     }
     
-    // ============================================================
-    // FUNKCJE POMOCNICZE
-    // ============================================================
     function addLog(msg, isError = false) {
         const p = document.createElement('div');
         p.innerHTML = `📢 ${new Date().toLocaleTimeString()} - ${msg}`;
-        if (isError) p.style.color = "red";
+        if (isError) p.style.color = "#ff6b6b";
         else p.style.color = "white";
         logMessagesDiv.appendChild(p);
         p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -304,7 +269,7 @@
     
     function renderInventory() {
         diceInventoryDiv.innerHTML = '';
-        if (inventory.length === 0) {
+        if (window.inventory.length === 0) {
             const emptyMsg = document.createElement('div');
             emptyMsg.innerText = "💀 You don't have any dices! Click the ROLL button to interact. 💀";
             emptyMsg.style.padding = '20px';
@@ -315,10 +280,10 @@
             return;
         }
 
-        inventory.forEach((dice, idx) => {
+        window.inventory.forEach((dice, idx) => {
             const card = document.createElement('div');
             card.className = 'dice-card';
-            if (selectedIndices.has(idx)) {
+            if (window.selectedIndices.has(idx)) {
                 card.classList.add('selected');
             }
             const eyesSpan = document.createElement('div');
@@ -335,21 +300,21 @@
             
             card.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (selectedIndices.has(idx)) {
-                    selectedIndices.delete(idx);
+                if (window.selectedIndices.has(idx)) {
+                    window.selectedIndices.delete(idx);
                 } else {
-                    selectedIndices.add(idx);
+                    window.selectedIndices.add(idx);
                 }
                 renderInventory();
             });
             diceInventoryDiv.appendChild(card);
         });
-        diceCountSpan.innerText = inventory.length;
+        diceCountSpan.innerText = window.inventory.length;
     }
     
     function saveGame() {
         try {
-            const toStore = inventory.map(d => ({ eyes: d.eyes, crafted: d.crafted }));
+            const toStore = window.inventory.map(d => ({ eyes: d.eyes, crafted: d.crafted }));
             localStorage.setItem('rngDiceGame', JSON.stringify(toStore));
             localStorage.setItem('rngDiceGame_sortMode', currentSortMode);
         } catch(e) { console.warn(e); }
@@ -367,20 +332,19 @@
             try {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
-                    inventory = parsed.filter(item => typeof item.eyes === 'number' && item.eyes >=1 && item.eyes <= MAX_DICE_VALUE)
+                    window.inventory = parsed.filter(item => typeof item.eyes === 'number' && item.eyes >=1 && item.eyes <= MAX_DICE_VALUE)
                                      .map(item => ({ eyes: item.eyes, crafted: !!item.crafted }));
-                    if (inventory.length > 0) addLog(`⚙️ You loaded game status (${inventory.length} dices).`);
+                    if (window.inventory.length > 0) addLog(`⚙️ You loaded game status (${window.inventory.length} dices).`);
                 }
             } catch(e) { addLog("⚠️ Unable to load status", true); }
         }
-        if (!inventory.length) {
-            inventory.push({ eyes: 1, crafted: false });
+        if (!window.inventory.length) {
+            window.inventory.push({ eyes: 1, crafted: false });
             addLog("✨ You get free 《1》 dice! Good luck!");
         }
         
-        // Zastosuj sortowanie po załadowaniu
         sortInventory();
-        selectedIndices.clear();
+        window.selectedIndices.clear();
         renderInventory();
         saveGame();
     }
@@ -390,10 +354,10 @@
             if (cooldownTimer) clearInterval(cooldownTimer);
             rollCooldown = false;
             updateRollButtonCooldown();
-            inventory = [];
-            inventory.push({ eyes: 1, crafted: false });
-            selectedIndices.clear();
-            sortInventory(); // zastosuj sortowanie po resecie
+            window.inventory = [];
+            window.inventory.push({ eyes: 1, crafted: false });
+            window.selectedIndices.clear();
+            sortInventory();
             renderInventory();
             saveGame();
             addLog("🔄 You restarted the game!");
@@ -402,9 +366,6 @@
         }
     }
     
-    // ============================================================
-    // LOSOWANIE Z COOLDOWNEM
-    // ============================================================
     function rollDice() {
         if (rollCooldown) {
             addLog("⏳ You have to wait 3 seconds! ⏳", true);
@@ -412,12 +373,11 @@
         }
         
         const newEyes = getRandomDiceValue();
-        inventory.push({ eyes: newEyes, crafted: false });
+        window.inventory.push({ eyes: newEyes, crafted: false });
         
-        // Po dodaniu nowej kości, zastosuj sortowanie
         sortInventory();
         
-        selectedIndices.clear();
+        window.selectedIndices.clear();
         renderInventory();
         saveGame();
         
@@ -439,20 +399,17 @@
         startRollCooldown();
     }
     
-    // ============================================================
-    // CRAFT
-    // ============================================================
     function craftDice() {
-        const selectedArr = Array.from(selectedIndices).sort((a,b)=>a-b);
+        const selectedArr = Array.from(window.selectedIndices).sort((a,b)=>a-b);
         const count = selectedArr.length;
         if (count < 2 || count > 4) {
             addLog(`❌ You have to select 2-4 dices to craft! (${count} selected)`, true);
             return;
         }
-        const selectedDice = selectedArr.map(idx => inventory[idx]);
+        const selectedDice = selectedArr.map(idx => window.inventory[idx]);
         if (selectedDice.some(d => !d)) {
             addLog("⚠️ Error", true);
-            selectedIndices.clear();
+            window.selectedIndices.clear();
             renderInventory();
             return;
         }
@@ -461,41 +418,28 @@
         const halfSum = Math.floor(totalEyes / 2);
         const successRoll = Math.random() < 0.05;
         
+        let newInventory = window.inventory.filter((_, idx) => !selectedArr.includes(idx));
+        
         if (successRoll) {
             let newEyes = halfSum;
             if (newEyes < 1) newEyes = 1;
             if (newEyes > MAX_DICE_VALUE) newEyes = MAX_DICE_VALUE;
-            let newInventory = [...inventory];
-            for (let i = selectedArr.length-1; i >= 0; i--) {
-                newInventory.splice(selectedArr[i], 1);
-            }
+            
             newInventory.push({ eyes: newEyes, crafted: true });
-            inventory = newInventory;
             
-            // Zastosuj sortowanie po craftingu
-            sortInventory();
-            
-            selectedIndices.clear();
-            renderInventory();
-            saveGame();
-            addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${count} dices (number on all of them ${totalEyes}) → New dice with a ${newEyes} number! This dice is marked as "Crafted".`);
+            addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${count} dices (total eyes: ${totalEyes}) → New dice with ${newEyes} eyes! Marked as "Crafted".`);
         } else {
-            let newInventory = [...inventory];
-            for (let i = selectedArr.length-1; i >= 0; i--) {
-                newInventory.splice(selectedArr[i], 1);
-            }
-            inventory = newInventory;
-            
-            // Zastosuj sortowanie po nieudanym craftingu
-            sortInventory();
-            
-            selectedIndices.clear();
-            renderInventory();
-            saveGame();
-            addLog(`💔 Craft failed! 95% chance for losing... You lost ${count} dices (number on all of them ${totalEyes}).`, true);
-            if (inventory.length === 0) {
-                addLog(`⚠️⚠️ You don't have any dices! Roll to continue ⚠️⚠️`, true);
-            }
+            addLog(`💔 Craft failed! 95% chance for losing... You lost ${count} dices (total eyes: ${totalEyes}).`, true);
+        }
+        
+        window.inventory = newInventory;
+        sortInventory();
+        window.selectedIndices.clear();
+        renderInventory();
+        saveGame();
+        
+        if (window.inventory.length === 0 && !successRoll) {
+            addLog(`⚠️⚠️ You don't have any dices! Roll to continue ⚠️⚠️`, true);
         }
     }
     
@@ -509,9 +453,6 @@
         }
     }
     
-    // ============================================================
-    // EVENTY
-    // ============================================================
     rollBtn.addEventListener('click', () => safeAction(() => {
         rollDice();
     }));
@@ -524,21 +465,24 @@
         resetGame();
     }));
     
-    // ============================================================
-    // INICJALIZACJA
-    // ============================================================
+    window.inventory = [];
+    window.selectedIndices = new Set();
+    window.sortInventory = sortInventory;
+    window.renderInventory = renderInventory;
+    window.saveGame = saveGame;
+    window.addLog = addLog;
+    
     loadGame();
     addPanelsToGame();
     
-    // Okresowy zapis
     setInterval(() => {
-        if (inventory.length) saveGame();
+        if (window.inventory.length) saveGame();
     }, 30000);
     
     function validateInventory() {
         let changed = false;
-        for (let i=0; i<inventory.length; i++) {
-            let d = inventory[i];
+        for (let i=0; i<window.inventory.length; i++) {
+            let d = window.inventory[i];
             if (d.eyes < 1 || d.eyes > MAX_DICE_VALUE || isNaN(d.eyes)) {
                 d.eyes = Math.min(MAX_DICE_VALUE, Math.max(1, d.eyes || 1));
                 changed = true;
@@ -552,21 +496,11 @@
         }
     }
     validateInventory();
-
-    // Make inventory and helper functions accessible to other scripts
-    window.inventory = inventory;
-    window.selectedIndices = selectedIndices;
-    window.sortInventory = sortInventory;
-    window.renderInventory = renderInventory;
-    window.saveGame = saveGame;
-    window.addLog = addLog;
     
-    // Console logging
     window.addEventListener('beforeunload', () => {
         saveGame();
     });
     
-    // Konsola
     if (window.console) {
         console.log("CHANCES FOR EVERY DICE");
         PROB_TABLE.forEach((w, i) => {
@@ -577,26 +511,22 @@
 })();
 
 (function() {
-    // Czyścimy statusy
     let isCrafting = false;
     let isCraftingAny = false;
     
-    // ============================================================
-    // UPDATE WYŚWIETLANIA SUWAKÓW
-    // ============================================================
     const deleteRange = document.getElementById('deleteRange');
     const deleteValueDisplay = document.getElementById('deleteValueDisplay');
-    const deleteBelowVal = document.getElementById('deleteBelowVal');
-    const deleteAboveVal = document.getElementById('deleteAboveVal');
-    const deleteExactVal = document.getElementById('deleteExactVal');
     
     if (deleteRange) {
         deleteRange.addEventListener('input', function() {
             const val = this.value;
             deleteValueDisplay.textContent = val;
-            deleteBelowVal.textContent = val;
-            deleteAboveVal.textContent = val;
-            deleteExactVal.textContent = val;
+            const deleteBelowVal = document.getElementById('deleteBelowVal');
+            const deleteAboveVal = document.getElementById('deleteAboveVal');
+            const deleteExactVal = document.getElementById('deleteExactVal');
+            if (deleteBelowVal) deleteBelowVal.textContent = val;
+            if (deleteAboveVal) deleteAboveVal.textContent = val;
+            if (deleteExactVal) deleteExactVal.textContent = val;
         });
     }
     
@@ -608,23 +538,19 @@
         });
     }
     
-    // ============================================================
-    // FUNKCJE USUWANIA
-    // ============================================================
     function removeBelow(threshold) {
         if (!confirm(`🗑️ Delete ALL dices with value BELOW ${threshold}?`)) return false;
         
-        const beforeCount = window.inventory ? window.inventory.length : 0;
         const newInventory = window.inventory.filter(dice => dice.eyes >= threshold);
         const removed = window.inventory.length - newInventory.length;
         
-        window.inventory = newInventory;
-        if (window.selectedIndices) window.selectedIndices.clear();
-        if (typeof window.sortInventory === 'function') window.sortInventory();
-        if (typeof window.renderInventory === 'function') window.renderInventory();
-        if (typeof window.saveGame === 'function') window.saveGame();
+        window.inventory.length = 0;
+        window.inventory.push(...newInventory);
+        window.selectedIndices.clear();
+        window.renderInventory();
+        window.saveGame();
         
-        showNotification(`✅ Deleted ${removed} dices (below ${threshold})`, '#ff8888');
+        showNotification(`✅ Deleted ${removed} dices (below ${threshold})`, '#88ff88');
         return true;
     }
     
@@ -634,13 +560,13 @@
         const newInventory = window.inventory.filter(dice => dice.eyes <= threshold);
         const removed = window.inventory.length - newInventory.length;
         
-        window.inventory = newInventory;
-        if (window.selectedIndices) window.selectedIndices.clear();
-        if (typeof window.sortInventory === 'function') window.sortInventory();
-        if (typeof window.renderInventory === 'function') window.renderInventory();
-        if (typeof window.saveGame === 'function') window.saveGame();
+        window.inventory.length = 0;
+        window.inventory.push(...newInventory);
+        window.selectedIndices.clear();
+        window.renderInventory();
+        window.saveGame();
         
-        showNotification(`✅ Deleted ${removed} dices (above ${threshold})`, '#ff8888');
+        showNotification(`✅ Deleted ${removed} dices (above ${threshold})`, '#88ff88');
         return true;
     }
     
@@ -650,19 +576,16 @@
         const toRemove = window.inventory.filter(dice => dice.eyes === value);
         const newInventory = window.inventory.filter(dice => dice.eyes !== value);
         
-        window.inventory = newInventory;
-        if (window.selectedIndices) window.selectedIndices.clear();
-        if (typeof window.sortInventory === 'function') window.sortInventory();
-        if (typeof window.renderInventory === 'function') window.renderInventory();
-        if (typeof window.saveGame === 'function') window.saveGame();
+        window.inventory.length = 0;
+        window.inventory.push(...newInventory);
+        window.selectedIndices.clear();
+        window.renderInventory();
+        window.saveGame();
         
-        showNotification(`✅ Deleted ${toRemove.length} dices with value ${value}`, '#ff8888');
+        showNotification(`✅ Deleted ${toRemove.length} dices with value ${value}`, '#88ff88');
         return true;
     }
     
-    // ============================================================
-    // NOTYFIKACJE
-    // ============================================================
     function showNotification(message, color = '#88ff88') {
         const notification = document.createElement('div');
         notification.style.cssText = `
@@ -688,9 +611,6 @@
         }, 3000);
     }
     
-    // ============================================================
-    // CRAFT TAKIE SAME (z cooldownem)
-    // ============================================================
     function startCraftSame() {
         if (isCrafting) {
             showNotification('⚠️ Craft already in progress!', '#ffaa66');
@@ -702,6 +622,11 @@
         let maxCrafts = parseInt(document.getElementById('craftMax').value);
         if (maxCrafts === 0) maxCrafts = 999;
         
+        if (!numberOfDice) {
+            showNotification('⚠️ Please select number of dices!', '#ffaa66');
+            return;
+        }
+        
         const statusDiv = document.getElementById('craftStatus');
         statusDiv.innerHTML = '🔧 Crafting in progress...';
         statusDiv.style.color = '#88ff88';
@@ -710,7 +635,18 @@
         let craftsDone = 0;
         
         function doCraft() {
-            // Znajdź indeksy
+            const diceCount = window.inventory.filter(d => d.eyes === eyesValue).length;
+            if (diceCount < numberOfDice || craftsDone >= maxCrafts) {
+                statusDiv.innerHTML = `✅ Finished! ${craftsDone} crafts done.`;
+                statusDiv.style.color = '#88ff88';
+                isCrafting = false;
+                showNotification(`✅ Autocraft finished! ${craftsDone} crafts done.`, '#88ff88');
+                if (typeof window.addLog === 'function') {
+                    window.addLog(`🔧 Auto-craft session completed: ${craftsDone} successful crafts`);
+                }
+                return;
+            }
+            
             const indices = [];
             for (let i = 0; i < window.inventory.length && indices.length < numberOfDice; i++) {
                 if (window.inventory[i].eyes === eyesValue) {
@@ -718,11 +654,11 @@
                 }
             }
             
-            if (indices.length < numberOfDice || craftsDone >= maxCrafts) {
+            if (indices.length < numberOfDice) {
                 statusDiv.innerHTML = `✅ Finished! ${craftsDone} crafts done.`;
                 statusDiv.style.color = '#88ff88';
                 isCrafting = false;
-                showNotification(`✅ Autocraft finished! ${craftsDone} crafts`, '#88ff88');
+                showNotification(`✅ Autocraft finished! ${craftsDone} crafts done.`, '#88ff88');
                 return;
             }
             
@@ -731,31 +667,31 @@
             const halfSum = Math.floor(totalEyes / 2);
             let newEyes = Math.min(20, Math.max(1, halfSum));
             
-            // Usuń
-            let newInventory = [...window.inventory];
-            for (let i = indices.length - 1; i >= 0; i--) {
-                newInventory.splice(indices[i], 1);
-            }
+            let newInventory = window.inventory.filter((_, idx) => !indices.includes(idx));
             
-            // 5% sukces
             const success = Math.random() < 0.05;
             if (success) {
                 newInventory.push({ eyes: newEyes, crafted: true });
                 craftsDone++;
                 statusDiv.innerHTML = `🔧 Craft #${craftsDone}: ${numberOfDice}x${eyesValue} → ${newEyes} ✅`;
-                showNotification(`✨ Craft #${craftsDone}: ${numberOfDice}x${eyesValue} → ${newEyes} (SUCCESS!)`, '#88ff88');
-                window.addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${numberOfDice} dices (number on all of them ${totalEyes}) → New dice with a ${newEyes} number! This dice is marked as "Crafted".`);
+                showNotification(`✨ Craft #${craftsDone}: SUCCESS! ${numberOfDice}x${eyesValue} → ${newEyes}`, '#88ff88');
+                if (typeof window.addLog === 'function') {
+                    window.addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${numberOfDice} dices (total eyes: ${totalEyes}) → New dice with ${newEyes} eyes! Marked as "Crafted".`);
+                }
             } else {
-                statusDiv.innerHTML = `❌ Craft #${craftsDone + 1}: ${numberOfDice}x${eyesValue} → FAILED!`;
+                statusDiv.innerHTML = `❌ Craft #${craftsDone + 1}: FAILED!`;
                 craftsDone++;
-                showNotification(`❌ Craft #${craftsDone}: ${numberOfDice}x${eyesValue} → FAILED!`, '#ff8888');
-                window.addLog(`💔 Craft failed! 95% chance for losing... You lost ${numberOfDice} dices (number on all of them ${totalEyes}).`, true);
+                showNotification(`❌ Craft #${craftsDone}: FAILED! Lost ${numberOfDice}x${eyesValue}`, '#ff8888');
+                if (typeof window.addLog === 'function') {
+                    window.addLog(`💔 Craft failed! 95% chance for losing... You lost ${numberOfDice} dices (total eyes: ${totalEyes}).`, true);
+                }
             }
             
-            window.inventory = newInventory;
-            if (typeof window.sortInventory === 'function') window.sortInventory();
-            if (typeof window.renderInventory === 'function') window.renderInventory();
-            if (typeof window.saveGame === 'function') window.saveGame();
+            window.inventory.length = 0;
+            window.inventory.push(...newInventory);
+            window.sortInventory();
+            window.renderInventory();
+            window.saveGame();
             
             setTimeout(doCraft, 1000);
         }
@@ -763,9 +699,6 @@
         doCraft();
     }
     
-    // ============================================================
-    // CRAFT DOWOLNE (z cooldownem)
-    // ============================================================
     function startCraftAny() {
         if (isCraftingAny) {
             showNotification('⚠️ Craft already in progress!', '#ffaa66');
@@ -775,6 +708,11 @@
         let numberOfDice = parseInt(document.querySelector('input[name="craftAnyCount"]:checked').value);
         let maxCrafts = parseInt(document.getElementById('craftAnyMax').value);
         if (maxCrafts === 0) maxCrafts = 999;
+        
+        if (!numberOfDice) {
+            showNotification('⚠️ Please select number of dices!', '#ffaa66');
+            return;
+        }
         
         const statusDiv = document.getElementById('craftAnyStatus');
         statusDiv.innerHTML = '🔧 Crafting any dices...';
@@ -788,7 +726,10 @@
                 statusDiv.innerHTML = `✅ Finished! ${craftsDone} crafts done.`;
                 statusDiv.style.color = '#88ff88';
                 isCraftingAny = false;
-                showNotification(`✅ Autocraft any finished! ${craftsDone} crafts`, '#88ff88');
+                showNotification(`✅ Autocraft any finished! ${craftsDone} crafts done.`, '#88ff88');
+                if (typeof window.addLog === 'function') {
+                    window.addLog(`🔧 Auto-craft any session completed: ${craftsDone} successful crafts`);
+                }
                 return;
             }
             
@@ -798,29 +739,31 @@
             const halfSum = Math.floor(totalEyes / 2);
             let newEyes = Math.min(20, Math.max(1, halfSum));
             
-            let newInventory = [...window.inventory];
-            for (let i = numberOfDice - 1; i >= 0; i--) {
-                newInventory.splice(i, 1);
-            }
+            let newInventory = window.inventory.filter((_, idx) => !indices.includes(idx));
             
             const success = Math.random() < 0.05;
             if (success) {
                 newInventory.push({ eyes: newEyes, crafted: true });
                 craftsDone++;
                 statusDiv.innerHTML = `✨ Craft #${craftsDone}: sum ${totalEyes} → ${newEyes} ✅`;
-                showNotification(`✨ Craft any #${craftsDone}: sum ${totalEyes} → ${newEyes} (SUCCESS!)`, '#88ff88');
-                window.addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${numberOfDice} dices (number on all of them ${totalEyes}) → New dice with a ${newEyes} number! This dice is marked as "Crafted".`);
+                showNotification(`✨ Craft any #${craftsDone}: SUCCESS! sum ${totalEyes} → ${newEyes}`, '#88ff88');
+                if (typeof window.addLog === 'function') {
+                    window.addLog(`✨✨ Craft succeeded! ✨✨ Crafted ${numberOfDice} dices (total eyes: ${totalEyes}) → New dice with ${newEyes} eyes! Marked as "Crafted".`);
+                }
             } else {
-                statusDiv.innerHTML = `❌ Craft #${craftsDone + 1}: sum ${totalEyes} → FAILED!`;
+                statusDiv.innerHTML = `❌ Craft #${craftsDone + 1}: FAILED!`;
                 craftsDone++;
-                showNotification(`❌ Craft any #${craftsDone}: sum ${totalEyes} → FAILED!`, '#ff8888');
-                window.addLog(`💔 Craft failed! 95% chance for losing... You lost ${numberOfDice} dices (number on all of them ${totalEyes}).`, true);
+                showNotification(`❌ Craft any #${craftsDone}: FAILED!`, '#ff8888');
+                if (typeof window.addLog === 'function') {
+                    window.addLog(`💔 Craft failed! 95% chance for losing... You lost ${numberOfDice} dices (total eyes: ${totalEyes}).`, true);
+                }
             }
             
-            window.inventory = newInventory;
-            if (typeof window.sortInventory === 'function') window.sortInventory();
-            if (typeof window.renderInventory === 'function') window.renderInventory();
-            if (typeof window.saveGame === 'function') window.saveGame();
+            window.inventory.length = 0;
+            window.inventory.push(...newInventory);
+            window.sortInventory();
+            window.renderInventory();
+            window.saveGame();
             
             setTimeout(doCraft, 1000);
         }
@@ -828,9 +771,6 @@
         doCraft();
     }
     
-    // ============================================================
-    // STATYSTYKI
-    // ============================================================
     function showStats() {
         const stats = {};
         for (let i = 1; i <= 20; i++) {
@@ -852,9 +792,6 @@
         showNotification(`📊 ${total} dices in inventory`, '#ffaa66');
     }
     
-    // ============================================================
-    // PODŁĄCZENIE PRZYCISKÓW
-    // ============================================================
     document.getElementById('deleteBelowBtn').onclick = () => removeBelow(parseInt(deleteRange.value));
     document.getElementById('deleteAboveBtn').onclick = () => removeAbove(parseInt(deleteRange.value));
     document.getElementById('deleteExactBtn').onclick = () => removeExact(parseInt(deleteRange.value));
@@ -862,7 +799,6 @@
     document.getElementById('startCraftAnyBtn').onclick = startCraftAny;
     document.getElementById('statsBtn').onclick = showStats;
     
-    // Dodaj animację CSS
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideInRight {
