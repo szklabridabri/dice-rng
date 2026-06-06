@@ -1,458 +1,631 @@
-/* =============================================
-   ZAAWANSOWANY CSS – GRA RNG KOŚCI (PREMIUM EDITION)
-   Animacje, gradienty, efekty 3D, glassmorphism, neon
-   ============================================= */
+/* ============================================================
+   Dice RNG — Stylesheet
+   A small, deliberate design system. Neutral surfaces, one warm
+   accent, restrained motion. Tweak the tokens below to retheme.
+   ============================================================ */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+:root {
+  /* Surfaces (dark slate, cool-neutral) */
+  --bg:            #11151c;
+  --surface-1:     #171c25;
+  --surface-2:     #1d2330;
+  --surface-3:     #242b3a;
+  --line:          #2c3445;
+  --line-strong:   #3a4256;
+
+  /* Text */
+  --text:          #e7eaf0;
+  --text-muted:    #98a1b3;
+  --text-faint:    #687085;
+
+  /* Accent — single warm amber, used sparingly */
+  --accent:        #e6a43b;
+  --accent-strong: #c9852a;
+  --accent-soft:   rgba(230, 164, 59, 0.12);
+
+  /* Semantic */
+  --danger:        #d96a6a;
+  --success:       #5aa97f;
+  --info:          #6d93c4;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 16px;
+
+  /* Elevation — soft, low-spread shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow:    0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.35);
+
+  /* Type */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
 }
 
 body {
-    background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: 'Inter', 'Segoe UI', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-    padding: 20px;
-    position: relative;
-    overflow-x: hidden;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--space-6) var(--space-4);
 }
 
-/* tło z animowanymi gwiazdami/particles */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(2px 2px at 15% 40%, rgba(255,215,0,0.3), transparent),
-        radial-gradient(1px 1px at 75% 85%, rgba(255,180,70,0.4), transparent),
-        radial-gradient(3px 3px at 95% 15%, rgba(200,100,255,0.2), transparent);
-    background-repeat: no-repeat;
-    background-size: 200px 200px, 300px 300px, 400px 400px;
-    pointer-events: none;
-    animation: starsFloat 40s linear infinite;
-    z-index: 0;
+button,
+input {
+  font-family: inherit;
 }
 
-@keyframes starsFloat {
-    0% { background-position: 0% 0%, 0% 0%, 0% 0%; }
-    100% { background-position: 100% 100%, 80% 60%, 120% 80%; }
+::selection {
+  background: var(--accent-soft);
 }
 
-/* główny kontener z efektem glassmorphism + neon glow */
+/* ---------- Layout shell ---------- */
 .game-container {
-    position: relative;
-    z-index: 2;
-    max-width: 1400px;
-    width: 100%;
-    background: rgba(8, 18, 28, 0.55);
-    backdrop-filter: blur(12px);
-    border-radius: 3rem;
-    padding: 1.8rem;
-    box-shadow: 
-        0 30px 50px rgba(0, 0, 0, 0.6),
-        inset 0 1px 1px rgba(255, 255, 255, 0.1),
-        0 0 0 1px rgba(255, 200, 100, 0.15);
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 200, 100, 0.2);
+  width: 100%;
+  max-width: 1100px;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
 }
 
-/* HEADER – efekt złocisty */
+/* ---------- Header ---------- */
 .header {
-    text-align: center;
-    margin-bottom: 2rem;
-    position: relative;
+  text-align: left;
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--line);
 }
 
 .header h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #FFE6B0 0%, #FFB347 30%, #FFD966 70%, #FFA500 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: shimmer 6s linear infinite;
-    letter-spacing: 3px;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    margin-bottom: 0.25rem;
-}
-
-@keyframes shimmer {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  font-size: 1.75rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: var(--space-2);
 }
 
 .sub {
-    color: #cbd5e6;
-    font-weight: 500;
-    letter-spacing: 1px;
-    font-size: 0.9rem;
-    background: rgba(0, 0, 0, 0.4);
-    display: inline-block;
-    padding: 0.3rem 1.2rem;
-    border-radius: 40px;
-    backdrop-filter: blur(4px);
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
 }
 
-/* sekcja inventory */
-.inventory-section {
-    background: rgba(5, 15, 25, 0.7);
-    backdrop-filter: blur(8px);
-    border-radius: 2rem;
-    padding: 1.3rem;
-    margin-bottom: 1.8rem;
-    border: 1px solid rgba(255, 180, 70, 0.25);
-    transition: all 0.2s;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255,255,255,0.05);
+/* ---------- Section primitive ---------- */
+.inventory-section,
+.info-panel {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
 }
 
 .section-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(120deg, #ffdd99, #ffbc6e);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    border-left: 4px solid #f5b042;
-    padding-left: 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-/* siatka kości – responsywna, z płynnymi hoverami */
+/* ---------- Dice grid ---------- */
 .dice-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: center;
-    justify-content: flex-start;
-    max-height: 340px;
-    overflow-y: auto;
-    padding: 0.5rem 0.2rem;
-    scrollbar-width: thin;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: var(--space-2);
 }
 
-.dice-grid::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-.dice-grid::-webkit-scrollbar-track {
-    background: #1c2c3a;
-    border-radius: 8px;
-}
-.dice-grid::-webkit-scrollbar-thumb {
-    background: #ffa559;
-    border-radius: 8px;
-}
-
-/* KARTA KOŚCI – 3D, elegancka */
 .dice-card {
-    background: radial-gradient(ellipse at 35% 30%, #fef0c0, #e2a42c);
-    width: 92px;
-    height: 108px;
-    border-radius: 22px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.18s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    position: relative;
-    border: 1px solid rgba(255, 220, 120, 0.7);
-    box-shadow: 0 10px 0 #7a4718, 0 4px 12px rgba(0,0,0,0.4);
-    transform: translateY(-2px);
+  position: relative;
+  width: 92px;
+  height: 108px;
+  background: var(--surface-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .dice-card:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 12px 0 #7a4718, 0 8px 20px rgba(0,0,0,0.5);
-    background: radial-gradient(ellipse at 35% 30%, #fff5dc, #f0b543);
+  transform: translateY(-2px);
+  border-color: var(--text-faint);
+  box-shadow: var(--shadow);
 }
 
 .dice-card.selected {
-    box-shadow: 0 0 0 4px #fff0b5, 0 0 0 8px #ffaa33, 0 8px 0 #7a4718;
-    transform: scale(1.02) translateY(-3px);
-    background: radial-gradient(ellipse at 35% 30%, #fff3cf, #f8c25c);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow);
+  background: var(--surface-3);
 }
 
 .dice-eyes {
-    font-size: 2.8rem;
-    font-weight: 800;
-    color: #2c1a08;
-    text-shadow: 2px 2px 0 rgba(255,215,0,0.5);
-    letter-spacing: 2px;
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
 }
 
 .dice-label {
-    font-size: 0.7rem;
-    background: #2e241fe6;
-    padding: 4px 10px;
-    border-radius: 30px;
-    color: #ffefcf;
-    font-weight: 600;
-    margin-top: 6px;
-    backdrop-filter: blur(2px);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
 }
 
-/* crafted badge – neon */
+.selected .dice-label {
+  color: var(--accent);
+}
+
+/* crafted badge — quiet pill, not neon */
 .crafted-badge {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: linear-gradient(135deg, #b84eff, #6a1fbd);
-    color: white;
-    font-size: 0.65rem;
-    font-weight: bold;
-    padding: 3px 10px;
-    border-radius: 40px;
-    box-shadow: 0 0 6px #c084fc;
-    letter-spacing: 0.8px;
-    border: 1px solid #e9b3ff;
-    animation: glowPulse 1.8s infinite;
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 100px;
+  border: 1px solid rgba(230, 164, 59, 0.3);
 }
 
-@keyframes glowPulse {
-    0% { box-shadow: 0 0 2px #c084fc; }
-    50% { box-shadow: 0 0 10px #dd99ff; }
-    100% { box-shadow: 0 0 2px #c084fc; }
+/* empty inventory state */
+.dice-grid > div:not(.dice-card) {
+  width: 100%;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 0.875rem;
+  padding: var(--space-6);
 }
 
-/* panel akcji – przyciski premium */
+/* ---------- Buttons ---------- */
 .action-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.2rem;
-    justify-content: center;
-    margin: 2rem 0 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin: var(--space-5) 0;
 }
 
 button {
-    border: none;
-    padding: 14px 32px;
-    font-size: 1.05rem;
-    font-weight: 700;
-    border-radius: 80px;
-    cursor: pointer;
-    transition: all 0.12s linear;
-    font-family: inherit;
-    letter-spacing: 1px;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(5px);
+  border: 1px solid transparent;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-}
-
-button:hover::before {
-    left: 100%;
-}
-
-button:active {
-    transform: translateY(3px);
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .btn-primary {
-    background: linear-gradient(145deg, #e68a2e, #b95f1a);
-    box-shadow: 0 6px 0 #754012;
-    color: #fff7e8;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+  background: var(--accent);
+  color: #1a1205;
 }
+
 .btn-primary:hover {
-    background: linear-gradient(145deg, #f59e3a, #cc6e22);
-    box-shadow: 0 7px 0 #754012;
-    transform: translateY(-1px);
-}
-.btn-primary:active {
-    transform: translateY(5px);
-    box-shadow: 0 2px 0 #754012;
+  background: var(--accent-strong);
 }
 
 .btn-craft {
-    background: linear-gradient(145deg, #7b3fbc, #552a8a);
-    box-shadow: 0 6px 0 #331d52;
-    color: #f2e6ff;
+  background: transparent;
+  color: var(--text);
+  border-color: var(--line-strong);
 }
+
 .btn-craft:hover {
-    background: linear-gradient(145deg, #945fd9, #6b35aa);
-    transform: translateY(-1px);
-}
-.btn-craft:active {
-    transform: translateY(5px);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn-reset {
-    background: linear-gradient(145deg, #3f4e5e, #26323f);
-    box-shadow: 0 6px 0 #141c24;
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--line);
 }
+
 .btn-reset:hover {
-    background: linear-gradient(145deg, #546d82, #2f3e4e);
+  color: var(--text);
+  border-color: var(--line-strong);
 }
 
-/* panel informacyjny – glass + neon border */
-.info-panel {
-    background: rgba(3, 12, 20, 0.7);
-    backdrop-filter: blur(12px);
-    border-radius: 1.8rem;
-    padding: 1.2rem 1.4rem;
-    margin-top: 1.5rem;
-    border: 1px solid rgba(255, 190, 80, 0.3);
-    transition: 0.2s;
-}
-
+/* ---------- Info panel ---------- */
 .stat {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 14px;
-    font-weight: 500;
-    color: #f2e8d5;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 0.5rem 1rem;
-    border-radius: 90px;
-    margin-bottom: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.stat:last-of-type {
+  border-bottom: none;
 }
 
 .stat span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .stat strong {
-    color: #ffcf7a;
-    font-size: 1.2rem;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
 
-/* log area – styl terminala */
+/* ---------- Log ---------- */
 .log-area {
-    background: #02090fe6;
-    border-radius: 1.2rem;
-    padding: 1rem;
-    max-height: 160px;
-    overflow-y: auto;
-    font-family: 'Fira Code', 'Courier New', monospace;
-    font-size: 0.8rem;
-    border: 1px solid #2f5a74;
-    box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+  margin-top: var(--space-4);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  max-height: 180px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
 }
 
 .log-area div {
-    padding: 3px 0;
-    border-bottom: 1px dashed #2f5a7455;
-    font-weight: 500;
-    word-break: break-word;
+  padding: 3px 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+  word-break: break-word;
 }
 
-/* dostosowanie mobilne */
-@media (max-width: 700px) {
-    .game-container { padding: 1rem; }
-    .dice-card { width: 76px; height: 92px; }
-    .dice-eyes { font-size: 2.2rem; }
-    button { padding: 10px 20px; font-size: 0.85rem; }
-    .section-title { font-size: 1.2rem; }
-    .stat { flex-direction: column; align-items: flex-start; border-radius: 24px; }
+/* ---------- Mass tools ---------- */
+#massToolsPanel {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  margin: var(--space-5) 0;
 }
 
-/* efekt pustego inventory */
-.dice-grid div:only-child:empty, 
-.dice-grid > div:first-child:last-child:not(.dice-card) {
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(8px);
-    border-radius: 2rem;
-    width: 100%;
-    text-align: center;
-    font-style: italic;
+.tools-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
 }
 
-/* hover i dodatkowe detale */
-.dice-card:active {
-    transform: translateY(2px);
-    box-shadow: 0 4px 0 #7a4718;
+.tools-header span:first-child {
+  font-size: 1rem;
 }
 
-/* animacja pojawiania się nowych kości */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(15px) scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(-2px) scale(1);
-    }
+.tools-header span:last-child {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
 
-.dice-card {
-    animation: fadeInUp 0.2s ease-out;
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
 }
 
-/* ozdobnik na tle przycisków */
-button::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 10%;
-    width: 80%;
-    height: 2px;
-    background: radial-gradient(ellipse, rgba(255,215,0,0.8), transparent);
-    opacity: 0;
-    transition: opacity 0.2s;
+.tool-section {
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
 }
 
-button:hover::after {
-    opacity: 1;
+.tool-title {
+  margin-bottom: var(--space-4);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-/* Scrollbar globalny */
+/* tint titles by category — muted, not glowing */
+.delete-section .tool-title  { color: var(--danger); }
+.craft-section .tool-title   { color: var(--success); }
+.craft-any-section .tool-title { color: var(--info); }
+.stats-section .tool-title   { color: var(--accent); }
+
+.tool-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.tool-input-group {
+  margin-bottom: var(--space-4);
+}
+
+/* range + number inputs */
+input[type="range"] {
+  width: 100%;
+  height: 4px;
+  border-radius: 100px;
+  background: var(--line-strong);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface-1);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface-1);
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+
+input[type="number"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+input[type="number"]:focus {
+  border-color: var(--accent);
+}
+
+.value-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: var(--space-2);
+}
+
+.value-display span:first-child {
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.value-display span:last-child {
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+/* radios */
+.radio-group {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: color 0.15s ease;
+}
+
+.radio-group label:hover {
+  color: var(--text);
+}
+
+input[type="radio"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* tool buttons */
+.tool-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tool-btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.825rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.tool-btn:hover {
+  background: var(--surface-3);
+}
+
+.craft-section .tool-btn:hover    { border-color: var(--success); }
+.craft-any-section .tool-btn:hover { border-color: var(--info); }
+.delete-section .tool-btn {
+  color: var(--danger);
+  border-color: rgba(217, 106, 106, 0.4);
+}
+.delete-section .tool-btn:hover {
+  background: rgba(217, 106, 106, 0.1);
+  border-color: var(--danger);
+}
+
+.tool-status {
+  margin-top: var(--space-3);
+  min-height: 18px;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.stats-display {
+  margin-top: var(--space-3);
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.stats-display div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-1) 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Scrollbars ---------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
 ::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
+  height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-    background: #0f1a1f;
-    border-radius: 8px;
+  background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-    background: #d98e2b;
-    border-radius: 8px;
+  background: var(--line-strong);
+  border-radius: 100px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: #ffb347;
+  background: var(--text-faint);
 }
 
-/* podświetlenie zaznaczenia */
-.selected .dice-eyes {
-    text-shadow: 0 0 6px gold;
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  .game-container {
+    padding: var(--space-4);
+  }
+  .header h1 {
+    font-size: 1.4rem;
+  }
+  .dice-card {
+    width: 80px;
+    height: 96px;
+  }
+  .dice-eyes {
+    font-size: 1.9rem;
+  }
+  .tools-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-/* dodatkowy blask */
-@keyframes borderGlow {
-    0% { border-color: rgba(255, 180, 80, 0.2); }
-    100% { border-color: rgba(255, 180, 80, 0.6); }
+@media (max-width: 480px) {
+  body {
+    padding: var(--space-3);
+  }
+  .action-bar button {
+    flex: 1 1 auto;
+  }
 }
 
-.game-container:hover {
-    border-color: rgba(255, 200, 100, 0.35);
+/* ---------- Motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }
