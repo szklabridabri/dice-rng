@@ -576,3 +576,280 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+// ============================================================
+// 🛠️ MASS DELETE & AUTOCRAFT SYSTEM
+// ============================================================
+
+window.DiceManager = {
+    // ============================================================
+    // 1. DELETE ALL DICES BELOW SELECTED VALUE
+    // ============================================================
+    removeBelow: function(threshold) {
+        if (!confirm(`Are you sure you want to DELETE ALL dices with value BELOW ${threshold}?`)) {
+            console.log("❌ Cancelled");
+            return false;
+        }
+        
+        const beforeCount = inventory.length;
+        const toRemove = inventory.filter(dice => dice.eyes < threshold);
+        const newInventory = inventory.filter(dice => dice.eyes >= threshold);
+        
+        inventory = newInventory;
+        selectedIndices.clear();
+        sortInventory();
+        renderInventory();
+        saveGame();
+        
+        console.log(`%c✅ DELETED ${toRemove.length} dices (below ${threshold})`, "color: lime; font-size: 14px");
+        console.log(`📊 Remaining: ${inventory.length} dices`);
+        addLog(`🗑️ Deleted ${toRemove.length} dices with value below ${threshold}`);
+        return true;
+    },
+    
+    // ============================================================
+    // 2. DELETE ALL DICES ABOVE SELECTED VALUE
+    // ============================================================
+    removeAbove: function(threshold) {
+        if (!confirm(`Are you sure you want to DELETE ALL dices with value ABOVE ${threshold}?`)) {
+            console.log("❌ Cancelled");
+            return false;
+        }
+        
+        const beforeCount = inventory.length;
+        const newInventory = inventory.filter(dice => dice.eyes <= threshold);
+        const removed = inventory.length - newInventory.length;
+        
+        inventory = newInventory;
+        selectedIndices.clear();
+        sortInventory();
+        renderInventory();
+        saveGame();
+        
+        console.log(`%c✅ DELETED ${removed} dices (above ${threshold})`, "color: lime; font-size: 14px");
+        console.log(`📊 Remaining: ${inventory.length} dices`);
+        addLog(`🗑️ Deleted ${removed} dices with value above ${threshold}`);
+        return true;
+    },
+    
+    // ============================================================
+    // 3. DELETE ALL DICES WITH EXACT VALUE
+    // ============================================================
+    removeExact: function(eyesValue) {
+        if (!confirm(`Are you sure you want to DELETE ALL dices with value ${eyesValue}?`)) {
+            console.log("❌ Cancelled");
+            return false;
+        }
+        
+        const beforeCount = inventory.length;
+        const toRemove = inventory.filter(dice => dice.eyes === eyesValue);
+        const newInventory = inventory.filter(dice => dice.eyes !== eyesValue);
+        
+        inventory = newInventory;
+        selectedIndices.clear();
+        sortInventory();
+        renderInventory();
+        saveGame();
+        
+        console.log(`%c✅ DELETED ${toRemove.length} dices with value ${eyesValue}`, "color: lime; font-size: 14px");
+        addLog(`🗑️ Deleted ${toRemove.length} dices with value ${eyesValue}`);
+        return true;
+    },
+    
+    // ============================================================
+    // 4. AUTOMATIC CRAFT (2, 3 or 4 dices of the same value)
+    // ============================================================
+    autoCraft: function(eyesValue, numberOfDice, maxCrafts = 999) {
+        // numberOfDice: 2, 3 or 4
+        if (![2, 3, 4].includes(numberOfDice)) {
+            console.error("❌ Number of dices to craft must be 2, 3 or 4");
+            return false;
+        }
+        
+        console.log(`%c🔧 STARTING AUTOCRAFT: ${numberOfDice} x dice ${eyesValue}`, "color: cyan; font-size: 14px");
+        addLog(`🔧 Autocraft: searching for ${numberOfDice} dices with value ${eyesValue}...`);
+        
+        let craftsDone = 0;
+        let totalEyesSum = 0;
+        
+        function performCraft() {
+            // Find indices of dices to craft
+            const indices = [];
+            for (let i = 0; i < inventory.length && indices.length < numberOfDice; i++) {
+                if (inventory[i].eyes === eyesValue) {
+                    indices.push(i);
+                }
+            }
+            
+            if (indices.length < numberOfDice || craftsDone >= maxCrafts) {
+                console.log(`%c✅ AUTOCRAFT FINISHED! Crafts done: ${craftsDone}`, "color: lime; font-size: 14px");
+                addLog(`✅ Autocraft finished! ${craftsDone} crafts done, total eyes sum: ${totalEyesSum}`);
+                renderInventory();
+                saveGame();
+                return;
+            }
+            
+            // Save selected dices
+            const selectedDice = indices.map(idx => inventory[idx]);
+            const totalEyes = selectedDice.reduce((sum, dice) => sum + dice.eyes, 0);
+            const halfSum = Math.floor(totalEyes / 2);
+            let newEyes = Math.min(MAX_DICE_VALUE, Math.max(1, halfSum));
+            
+            // Remove selected dices (from largest index)
+            let newInventory = [...inventory];
+            for (let i = indices.length - 1; i >= 0; i--) {
+                newInventory.splice(indices[i], 1);
+            }
+            
+            // Add new dice (5% success chance)
+            const success = Math.random() < 0.05;
+            if (success) {
+                newInventory.push({ eyes: newEyes, crafted: true });
+                craftsDone++;
+                totalEyesSum += totalEyes;
+                console.log(`✨ Craft ${craftsDone}: ${numberOfDice}x${eyesValue} (${totalEyes}) → ${newEyes} eyes [SUCCESS!]`);
+                addLog(`✨ Autocraft #${craftsDone}: ${numberOfDice}x${eyesValue} → ${newEyes} eyes (SUCCESS!)`);
+            } else {
+                console.log(`❌ Craft ${craftsDone + 1}: ${numberOfDice}x${eyesValue} → FAILED! (lost ${numberOfDice} dices)`);
+                addLog(`❌ Autocraft #${craftsDone + 1}: ${numberOfDice}x${eyesValue} → FAILED! (lost ${numberOfDice} dices)`);
+                craftsDone++;
+                totalEyesSum += 0;
+            }
+            
+            inventory = newInventory;
+            sortInventory();
+            renderInventory();
+            saveGame();
+            
+            // 1 second cooldown before next craft
+            setTimeout(performCraft, 1000);
+        }
+        
+        performCraft();
+        return true;
+    },
+    
+    // ============================================================
+    // 5. AUTOCRAFT ANY DICES (2-4 pieces, different values)
+    // ============================================================
+    autoCraftAny: function(numberOfDice, maxCrafts = 999) {
+        if (![2, 3, 4].includes(numberOfDice)) {
+            console.error("❌ Number of dices to craft must be 2, 3 or 4");
+            return false;
+        }
+        
+        console.log(`%c🔧 AUTOCRAFT ANY DICES: ${numberOfDice} pieces each`, "color: cyan; font-size: 14px");
+        addLog(`🔧 Auto craft any: looking for sets of ${numberOfDice} dices...`);
+        
+        let craftsDone = 0;
+        let totalEyesSum = 0;
+        
+        function performCraft() {
+            if (inventory.length < numberOfDice || craftsDone >= maxCrafts) {
+                console.log(`%c✅ AUTOCRAFT FINISHED! Crafts done: ${craftsDone}`, "color: lime; font-size: 14px");
+                addLog(`✅ Auto craft any finished! ${craftsDone} crafts done`);
+                renderInventory();
+                saveGame();
+                return;
+            }
+            
+            // Take first 'numberOfDice' dices
+            const indices = [...Array(numberOfDice).keys()];
+            const selectedDice = indices.map(idx => inventory[idx]);
+            const totalEyes = selectedDice.reduce((sum, dice) => sum + dice.eyes, 0);
+            const halfSum = Math.floor(totalEyes / 2);
+            let newEyes = Math.min(MAX_DICE_VALUE, Math.max(1, halfSum));
+            
+            // Remove first 'numberOfDice' dices
+            let newInventory = [...inventory];
+            for (let i = numberOfDice - 1; i >= 0; i--) {
+                newInventory.splice(i, 1);
+            }
+            
+            // 5% success chance
+            const success = Math.random() < 0.05;
+            if (success) {
+                newInventory.push({ eyes: newEyes, crafted: true });
+                craftsDone++;
+                totalEyesSum += totalEyes;
+                console.log(`✨ Craft ${craftsDone}: ${totalEyes} total eyes → ${newEyes} eyes [SUCCESS!]`);
+                addLog(`✨ Auto craft #${craftsDone}: sum ${totalEyes} → ${newEyes} eyes (SUCCESS!)`);
+            } else {
+                console.log(`❌ Craft ${craftsDone + 1}: ${totalEyes} total eyes → FAILED!`);
+                addLog(`❌ Auto craft #${craftsDone + 1}: sum ${totalEyes} → FAILED!`);
+                craftsDone++;
+            }
+            
+            inventory = newInventory;
+            sortInventory();
+            renderInventory();
+            saveGame();
+            
+            setTimeout(performCraft, 1000);
+        }
+        
+        performCraft();
+        return true;
+    },
+    
+    // ============================================================
+    // 6. SHOW DICE STATISTICS
+    // ============================================================
+    stats: function() {
+        const stats = {};
+        for (let i = 1; i <= MAX_DICE_VALUE; i++) {
+            stats[i] = inventory.filter(d => d.eyes === i).length;
+        }
+        
+        console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: gold");
+        console.log("%c📊 DICE STATISTICS", "color: gold; font-size: 16px");
+        console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: gold");
+        
+        for (let i = 1; i <= MAX_DICE_VALUE; i++) {
+            if (stats[i] > 0) {
+                const crafted = inventory.filter(d => d.eyes === i && d.crafted).length;
+                console.log(`🎲 ${i} eyes: ${stats[i]} pieces (${crafted} crafted)`);
+            }
+        }
+        console.log("%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", "color: gold");
+        console.log(`📦 Total: ${inventory.length} dices`);
+        
+        return stats;
+    }
+};
+
+// ============================================================
+// SHORTCUT COMMANDS FOR CONSOLE
+// ============================================================
+window.removeBelow = (x) => DiceManager.removeBelow(x);
+window.removeAbove = (x) => DiceManager.removeAbove(x);
+window.removeExact = (x) => DiceManager.removeExact(x);
+window.autoCraft = (val, num, max) => DiceManager.autoCraft(val, num, max);
+window.autoCraftAny = (num, max) => DiceManager.autoCraftAny(num, max);
+window.diceStats = () => DiceManager.stats();
+
+/*
+console.log("%c🛠️ MASS DELETE & AUTOCRAFT SYSTEM READY!", "color: #ff66ff; font-size: 16px");
+console.log("");
+console.log("📌 AVAILABLE COMMANDS:");
+console.log("   removeBelow(X)     - delete all dices below X");
+console.log("   removeAbove(X)     - delete all dices above X");
+console.log("   removeExact(X)     - delete all dices with value X");
+console.log("   autoCraft(val, num, max)  - craft 'num' dices with value 'val'");
+console.log("   autoCraftAny(num, max)    - craft any 'num' dices");
+console.log("   diceStats()         - show dice statistics");
+console.log("");
+console.log("💡 EXAMPLES:");
+console.log("   removeBelow(5)           - deletes dices 1-4");
+console.log("   autoCraft(3, 4, 10)      - craft 4x3 dices (max 10 times)");
+console.log("   autoCraftAny(2, 20)      - craft any 2 dices (max 20 times)");
+*/
